@@ -1,0 +1,29 @@
+{
+  "config": {
+    "alpha_beta": true,
+    "depth": 9,
+    "evaluation": {
+      "center": 2,
+      "open_lines": 1,
+      "two_in_a_row": 5
+    }
+  },
+  "method": "search",
+  "scorecard": {
+    "Greedy": {
+      "draw": 12,
+      "loss": 0,
+      "win": 0
+    },
+    "Minimax": {
+      "draw": 12,
+      "loss": 0,
+      "win": 0
+    },
+    "Randomo": {
+      "draw": 1,
+      "loss": 0,
+      "win": 11
+    }
+  }
+}

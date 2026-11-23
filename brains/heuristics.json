@@ -1,0 +1,45 @@
+{
+  "config": {
+    "mode": "points",
+    "rules": [
+      [
+        100,
+        "finish my line"
+      ],
+      [
+        90,
+        "block their line"
+      ],
+      [
+        10,
+        "take the center"
+      ],
+      [
+        5,
+        "take a corner"
+      ],
+      [
+        2,
+        "take an edge"
+      ]
+    ]
+  },
+  "method": "heuristics",
+  "scorecard": {
+    "Greedy": {
+      "draw": 40,
+      "loss": 0,
+      "win": 0
+    },
+    "Minimax": {
+      "draw": 40,
+      "loss": 0,
+      "win": 0
+    },
+    "Randomo": {
+      "draw": 4,
+      "loss": 0,
+      "win": 36
+    }
+  }
+}

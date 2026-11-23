@@ -1,0 +1,2 @@
+window.BRAINS_DATA = window.BRAINS_DATA || {};
+window.BRAINS_DATA['heuristics'] = {"method": "heuristics", "config": {"mode": "points", "rules": [[100, "finish my line"], [90, "block their line"], [10, "take the center"], [5, "take a corner"], [2, "take an edge"]]}, "scorecard": {"Randomo": {"win": 36, "draw": 4, "loss": 0}, "Greedy": {"win": 0, "draw": 40, "loss": 0}, "Minimax": {"win": 0, "draw": 40, "loss": 0}}};
