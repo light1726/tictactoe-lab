@@ -183,3 +183,10 @@ Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4
 you may share and adapt this material for non-commercial use, with attribution,
 under the same license. Fonts used by the playground are under the SIL Open
 Font License (Fredoka, Nunito, DM Mono).
+
+## Try it online
+
+The playground is deployed at **https://light1726.github.io/tictactoe-lab/** —
+play in the browser, train the RL brain with *Train now!*, and use the
+Make tab without installing anything. For the full experience (editing the
+Python brains), download this repository and run the `.py` files locally.
