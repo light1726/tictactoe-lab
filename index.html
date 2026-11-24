@@ -297,10 +297,6 @@
     flex:1;height:14px;background:var(--grape-pale);border:2px solid var(--ink);border-radius:999px;overflow:hidden;
   }
   .progress .fill{height:100%;background:var(--teal);width:0%;}
-  .export-pre{
-    font-family:"DM Mono",monospace;font-size:13px;line-height:1.55;white-space:pre-wrap;
-    background:#fff;border:2px solid var(--line);border-radius:9px;padding:10px 12px;margin-top:9px;overflow-x:auto;
-  }
   .range-wrap{display:flex;align-items:center;gap:10px;flex:1 1 220px;}
   .range-wrap output{font-family:"DM Mono",monospace;font-size:14px;font-weight:500;min-width:34px;}
 
@@ -320,7 +316,7 @@
 
   <header>
     <h1 class="title">Tic-Tac-Toe <span class="lab">Lab</span></h1>
-    <p class="tagline">Four brains, one game. Play them. Peek inside. Change them.</p>
+    <p class="tagline">Four AIs, one game. Play them. Peek inside. Change them.</p>
   </header>
 
   <nav class="tabs" id="tabs" aria-label="sections">
@@ -333,11 +329,11 @@
 
   <!-- ================= PLAY ================= -->
   <section class="stage" id="sec-play" aria-labelledby="p1">
-    <h2 class="stage-head" id="p1"><span class="stage-num">1</span>Play a brain</h2>
-    <p class="help">Pick a brain and a side, then click a square. After the brain moves, the purple panel shows <b>exactly why</b> it chose that square.</p>
+    <h2 class="stage-head" id="p1"><span class="stage-num">1</span>Play an AI</h2>
+    <p class="help">Pick an AI and a side, then click a square. After the AI moves, the purple panel shows <b>exactly why</b> it chose that square.</p>
 
     <div class="picks" style="margin-bottom:12px;">
-      <span class="pick-label help" style="margin:0;align-self:center;">Brain:</span>
+      <span class="pick-label help" style="margin:0;align-self:center;">AI:</span>
     </div>
     <div class="picks" id="brainPicker"></div>
 
@@ -356,20 +352,20 @@
 
   <section class="stage stage--machine hidden" id="brainPanel" aria-labelledby="bp">
     <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
-    <h2 class="stage-head" id="bp"><span class="stage-num" style="background:var(--sun);">🧠</span>What the brain was thinking</h2>
+    <h2 class="stage-head" id="bp"><span class="stage-num" style="background:var(--sun);">🧠</span>What the AI was thinking</h2>
     <span class="brain-lbl" id="brainLbl">…</span>
     <div id="brainBody"></div>
     <div class="ponder hidden" id="brainReflect"></div>
     <details class="log" id="brainHow">
-      <summary>How does this brain work?</summary>
+      <summary>How does this AI work?</summary>
       <div class="log-body" id="brainHowBody"></div>
     </details>
   </section>
 
   <!-- ================= COMPARE ================= -->
   <section class="stage hidden" id="sec-compare" aria-labelledby="p2">
-    <h2 class="stage-head" id="p2"><span class="stage-num">2</span>Compare the brains</h2>
-    <p class="help">Set up any board you like (click a square to cycle it X → O → empty), choose whose turn it is, then ask all four brains: <b>what would you play here — and why?</b></p>
+    <h2 class="stage-head" id="p2"><span class="stage-num">2</span>Compare the AIs</h2>
+    <p class="help">Set up any board you like (click a square to cycle it X → O → empty), choose whose turn it is, then ask all four AIs: <b>what would you play here — and why?</b></p>
 
     <div class="setup-row">
       <div class="mini" id="setupMini"></div>
@@ -388,31 +384,20 @@
 
   <!-- ================= MAKE ================= -->
   <section class="stage hidden" id="sec-make" aria-labelledby="p3">
-    <h2 class="stage-head" id="p3"><span class="stage-num">3</span>Make a brain</h2>
-    <p class="help">This is the sandbox: change a brain's <b>CONFIG</b> right here, then press <b>Apply &amp; play</b> — every tab now uses your version (marked ✏️). To keep it forever, copy the Python CONFIG into the brain's .py file and rerun it.</p>
+    <h2 class="stage-head" id="p3"><span class="stage-num">3</span>Make an AI</h2>
+    <p class="help">Change what this AI knows, then press <b>Apply</b> — every tab will use your version (marked ✏️). <b>Reset to default</b> brings the original back.</p>
     <div class="picks" style="margin-bottom:14px;" id="makePicker"></div>
     <div id="makeBody"></div>
     <div class="btn-row" style="margin-top:14px;">
-      <button class="btn btn--teal" id="applyMakeBtn">Apply &amp; play</button>
-      <button class="btn btn--ghost" id="resetMakeBtn">Reset to file</button>
-      <button class="btn btn--grape" id="exportMakeBtn">Show Python CONFIG</button>
+      <button class="btn btn--teal" id="applyMakeBtn">Apply</button>
+      <button class="btn btn--ghost" id="resetMakeBtn">Reset to default</button>
     </div>
-    <details class="log hidden" id="makeExport">
-      <summary>Python CONFIG — paste it into the .py file</summary>
-      <div class="log-body">
-        <pre class="export-pre" id="exportPre"></pre>
-        <div class="btn-row" style="margin-top:10px;justify-content:flex-start;">
-          <button class="btn btn--ghost" id="copyExportBtn">Copy</button>
-          <span class="help" id="copyExportNote" style="margin:0;"></span>
-        </div>
-      </div>
-    </details>
   </section>
 
   <!-- ================= SCORECARD ================= -->
   <section class="stage hidden" id="sec-scorecard" aria-labelledby="p4">
     <h2 class="stage-head" id="p4"><span class="stage-num">4</span>Scorecard</h2>
-    <p class="help">Every brain plays the same three test opponents — Randomo, Greedy and Minimax (a perfect player). This is how you check whether <b>your</b> changes to a brain made it better or worse.</p>
+    <p class="help">Every AI plays the same three test opponents — Randomo, Greedy and Minimax (a perfect player). This is how you check whether <b>your</b> changes made it better or worse.</p>
     <div class="slider-row">
       <span>Games per side:</span>
       <input type="range" id="scoreGames" min="10" max="200" step="10" value="50">
@@ -426,7 +411,7 @@
   <!-- ================= TOURNAMENT ================= -->
   <section class="stage hidden" id="sec-tournament" aria-labelledby="p5">
     <h2 class="stage-head" id="p5"><span class="stage-num">5</span>Tournament</h2>
-    <p class="help">The brains face <b>each other</b>, round-robin style. Which kind of knowledge wins the crown?</p>
+    <p class="help">The AIs face <b>each other</b>, round-robin style. Which kind of knowledge wins the crown?</p>
     <div class="slider-row">
       <span>Games per match-up:</span>
       <input type="range" id="tourGames" min="10" max="100" step="10" value="20">
@@ -764,8 +749,7 @@
     var html="";
     if(view.type==="heuristics"){
       if(!compact){
-        html+='<p class="help" style="color:#fff;margin:0 0 10px;">Every square gets points from your rules. Highest total wins'+
-          (view.cfg.mode==="priority" ? " — no wait, this brain is in <b>priority</b> mode: the first rule that applies wins!" : ".")+'</p>';
+        html+='<p class="help" style="color:#fff;margin:0 0 10px;">Every square gets points from your rules. Highest total wins.</p>';
       }
       var top=view.scores.reduce(function(m,s){ return s.total>m?s.total:m; },0);
       html+='<div class="cand-grid">';
@@ -780,7 +764,7 @@
       });
       html+='</div>';
       if(!compact){
-        html+='<div class="brain-foot">The rules (from heuristics.py): '+
+        html+='<div class="brain-foot">The rules: '+
           esc(view.cfg.rules.map(function(r){ return r[0]+" pts → "+r[1]; }).join(" · "))+'</div>';
       }
     }
@@ -808,7 +792,7 @@
       });
       html+='</div>';
       if(!compact){
-        html+='<div class="brain-foot">Bar colors: <span style="color:#c9b8ff;">win</span> · <span style="color:#ffd97a;">draw</span> · <span style="color:#f4c4c4;">loss</span>. The brain is only as smart as the games it dreams.</div>';
+        html+='<div class="brain-foot">Bar colors: <span style="color:#c9b8ff;">win</span> · <span style="color:#ffd97a;">draw</span> · <span style="color:#f4c4c4;">loss</span>. The AI is only as smart as the games it dreams.</div>';
       }
     }
     else if(view.type==="search"){
@@ -845,10 +829,7 @@
         html+='</div>';
       }
       if(!compact){
-        var c=view.cfg.config;
-        html+='<div class="brain-foot">I know <b>'+view.cfg.positions+'</b> positions. Training recipe: '+esc(c.train_against)+
-          ' opponent · α '+c.learning_rate+' · ε '+c.exploration+' · γ '+c.discount+' · rewards win '+c.rewards.win+
-          ' / draw '+c.rewards.draw+' / loss '+c.rewards.loss+'.</div>';
+        html+='<div class="brain-foot">I know <b>'+view.cfg.positions+'</b> positions.</div>';
         html+='<div class="brain-foot">Learning curve (win rate vs Randomo while training):</div>';
         html+=curveSvg(view.cfg.curve);
       }
@@ -888,16 +869,16 @@
       brainHowBody=$("brainHowBody");
 
   var HOW = {
-    heuristics:"Every square is scored with a list of rules written by a human — each rule has points. The brain plays the square with the highest total. All of its smarts came from the person who wrote the rules. If no rule covers a situation, the brain knows nothing about it.",
-    probability:"The brain doesn't know any strategy at all. For each square it rolls dice: it imagines the rest of the game played out randomly, again and again, and counts wins, draws and losses. Its smarts come from statistics — and from whoever it imagined playing against.",
-    search:"The brain imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
-    rl:"The brain started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
+    heuristics:"Every square is scored with a list of rules written by a human — each rule has points. The AI plays the square with the highest total. All of its smarts came from the person who wrote the rules. If no rule covers a situation, the AI knows nothing about it.",
+    probability:"The AI doesn't know any strategy at all. For each square it rolls dice: it imagines the rest of the game played out randomly, again and again, and counts wins, draws and losses. Its smarts come from statistics — and from whoever it imagined playing against.",
+    search:"The AI imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
+    rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
   };
   var REFLECT = {
-    heuristics:"🤔 <b>Think:</b> Where did this brain's knowledge come from? What happens in a situation that no rule covers? (Open heuristics.py, delete the “block their line” rule, rerun, and watch what breaks.)",
-    probability:"🤔 <b>Think:</b> Why does imagining a smarter opponent make a smarter brain? Try changing <i>imagined_player</i> to “greedy” in probability.py — does the brain get better or worse, and why?",
-    search:"🤔 <b>Think:</b> Why can the search brain never lose? And why does it never try to trick you, even when it could win faster? (Try <i>depth = 1</i> in search.py and see what the brain turns into.)",
-    rl:"🤔 <b>Think:</b> The RL brain learned from the games IT played. What happens if you change the rewards so a draw feels as good as a win? Or train it only against Minimax — will it still beat Randomo? (Edit rl.py and find out.)"
+    heuristics:"🤔 <b>Think:</b> Where did this AI's knowledge come from? What happens in a situation that no rule covers? (Try removing the “block their line” rule and see what breaks.)",
+    probability:"🤔 <b>Think:</b> This AI judges moves by games against a random opponent. What would happen if its imagined opponent were smarter?",
+    search:"🤔 <b>Think:</b> Why can the search AI never lose? And why does it never try to trick you, even when it could win faster? (Try depth 1 and see what it turns into.)",
+    rl:"🤔 <b>Think:</b> The RL AI learned from the games it played. What if it had practiced only against a perfect player — would it still beat Randomo?"
   };
 
   var game=null, aiTimer=null, brainVisible=false;
@@ -918,7 +899,7 @@
     brainPanel.classList.add("hidden");
     if(!BRAINS[brainKey]){
       game.over=true;
-      statusEl.textContent="This brain isn't built yet — run its .py file, then reload this page.";
+      statusEl.textContent="This AI isn't available yet.";
       renderBoard();
       return;
     }
@@ -986,7 +967,7 @@
       st = w===null ? "It's a draw!" :
            (w===game.human ? "You win! 🎉" : ORDER.filter(function(o){return o.key===game.brainKey;})[0].name+" wins!");
     } else {
-      st = game.player===game.human ? "Your turn!" : "The brain is thinking…";
+      st = game.player===game.human ? "Your turn!" : "The AI is thinking…";
     }
     statusEl.textContent=st;
   }
@@ -1008,7 +989,7 @@
   }
 
   function aiSoon(){
-    statusEl.textContent="The brain is thinking…";
+    statusEl.textContent="The AI is thinking…";
     aiTimer=setTimeout(function(){
       if(!game || game.over || game.player!==game.brain) return;
       var res=brainMove(game.brainKey, game.board, game.brain);
@@ -1161,7 +1142,7 @@
     var table=$("scoreTable");
     var built=ORDER.filter(function(o){ return BRAINS[o.key]; });
     if(!built.length){ table.innerHTML=""; return; }
-    var head="<tr><th>brain</th>"+LADDER.map(function(l){ return "<th>vs "+esc(l[0])+"</th>"; }).join("")+"</tr>";
+    var head="<tr><th>AI</th>"+LADDER.map(function(l){ return "<th>vs "+esc(l[0])+"</th>"; }).join("")+"</tr>";
     var rows="";
     built.forEach(function(o){
       var cells="<td class='rowh'>"+esc(o.name)+"</td>";
@@ -1200,7 +1181,7 @@
     }
     var scores={};
     built.forEach(function(o){ scores[o.key]={w:0,d:0,l:0}; });
-    var head="<tr><th>brain</th>"+built.map(function(o){ return "<th>vs "+esc(o.name)+"</th>"; }).join("")+"</tr>";
+    var head="<tr><th>AI</th>"+built.map(function(o){ return "<th>vs "+esc(o.name)+"</th>"; }).join("")+"</tr>";
     var rows="";
     built.forEach(function(a){
       var cells="<td class='rowh'>"+esc(a.name)+"</td>";
@@ -1323,11 +1304,9 @@
     var block=document.createElement("div"); block.className="cfg-block";
     var h=document.createElement("h3"); h.textContent="Rules — each rule gives points to the squares it likes";
     block.appendChild(h);
-    var modeRow=cfgRow("How rules decide:");
-    modeRow.appendChild(pillGroup(
-      [{label:"points (votes add up)",value:"points"},{label:"priority (first rule wins)",value:"priority"}],
-      cfg.mode, function(v){ cfg.mode=v; }));
-    block.appendChild(modeRow);
+    var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
+    help.innerHTML="The AI plays the square with the most points. <b>More points = more important.</b>";
+    block.appendChild(help);
     var list=document.createElement("div");
     function rerender(){
       list.innerHTML="";
@@ -1369,23 +1348,14 @@
   function probabilityEditor(cfg){
     var wrap=document.createElement("div");
     var block=document.createElement("div"); block.className="cfg-block";
-    var h=document.createElement("h3"); h.textContent="Imagine games, count outcomes";
+    var h=document.createElement("h3"); h.textContent="Simulated games per move";
     block.appendChild(h);
-    var r1=cfgRow("Simulations per move:");
+    var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
+    help.innerHTML="For each square it imagines this many random games and plays the one that wins most often. <b>More games = more confident.</b>";
+    block.appendChild(help);
+    var r1=cfgRow("Simulations:");
     r1.appendChild(numInput(cfg.simulations, 10, 10, 5000, function(v){ cfg.simulations=Math.max(10,Math.round(v)); }));
     block.appendChild(r1);
-    var r2=cfgRow("Score = win×");
-    r2.appendChild(numInput(cfg.score.win, 0.1, -5, 5, function(v){ cfg.score.win=v; }));
-    var l2=document.createElement("span"); l2.textContent="+ draw×";
-    r2.appendChild(l2);
-    r2.appendChild(numInput(cfg.score.draw, 0.1, -5, 5, function(v){ cfg.score.draw=v; }));
-    var l3=document.createElement("span"); l3.textContent="+ loss×";
-    r2.appendChild(l3);
-    r2.appendChild(numInput(cfg.score.loss, 0.1, -5, 5, function(v){ cfg.score.loss=v; }));
-    block.appendChild(r2);
-    var r3=cfgRow("Imagined player:");
-    r3.appendChild(pillGroup([{label:"random",value:"random"},{label:"greedy",value:"greedy"}], cfg.imagined_player, function(v){ cfg.imagined_player=v; }));
-    block.appendChild(r3);
     wrap.appendChild(block);
     return wrap;
   }
@@ -1393,23 +1363,14 @@
   function searchEditor(cfg){
     var wrap=document.createElement("div");
     var block=document.createElement("div"); block.className="cfg-block";
-    var h=document.createElement("h3"); h.textContent="How far to look, and how to judge unfinished positions";
+    var h=document.createElement("h3"); h.textContent="How far ahead does it look?";
     block.appendChild(h);
+    var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
+    help.innerHTML="How many moves ahead it considers. <b>9 = until the game ends</b> (then it can never lose). Fewer moves = weaker, but faster.";
+    block.appendChild(help);
     var r1=cfgRow("Depth (moves ahead):");
     r1.appendChild(rangeInput(cfg.depth, 1, 9, 1, function(v){ cfg.depth=Math.round(v); }));
     block.appendChild(r1);
-    var r2=cfgRow("Alpha-beta pruning:");
-    r2.appendChild(pillGroup([{label:"on",value:true},{label:"off",value:false}], cfg.alpha_beta, function(v){ cfg.alpha_beta=v; }));
-    block.appendChild(r2);
-    var r3=cfgRow("open lines ×");
-    r3.appendChild(numInput(cfg.evaluation.open_lines, 1, 0, 20, function(v){ cfg.evaluation.open_lines=v; }));
-    block.appendChild(r3);
-    var r4=cfgRow("two-in-a-row ×");
-    r4.appendChild(numInput(cfg.evaluation.two_in_a_row, 1, 0, 20, function(v){ cfg.evaluation.two_in_a_row=v; }));
-    block.appendChild(r4);
-    var r5=cfgRow("center bonus:");
-    r5.appendChild(numInput(cfg.evaluation.center, 1, 0, 20, function(v){ cfg.evaluation.center=v; }));
-    block.appendChild(r5);
     wrap.appendChild(block);
     return wrap;
   }
@@ -1417,36 +1378,17 @@
   function rlEditor(cfg){
     var wrap=document.createElement("div");
     var block=document.createElement("div"); block.className="cfg-block";
-    var h=document.createElement("h3"); h.textContent="The training recipe";
+    var h=document.createElement("h3"); h.textContent="Training settings";
     block.appendChild(h);
-    var r1=cfgRow("Train against:");
-    r1.appendChild(pillGroup([
-      {label:"random",value:"random"},{label:"greedy",value:"greedy"},
-      {label:"self",value:"self"},{label:"minimax",value:"minimax"},
-      {label:"mix",value:"mix"}],
-      cfg.train_against, function(v){ cfg.train_against=v; }));
-    block.appendChild(r1);
-    var r2=cfgRow("Episodes:");
+    var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
+    help.innerHTML="It learns by playing games. <b>More games = more experience</b>; a higher learning rate means each game changes its opinions more.";
+    block.appendChild(help);
+    var r2=cfgRow("Training games:");
     r2.appendChild(numInput(cfg.episodes, 1000, 1000, 100000, function(v){ cfg.episodes=Math.max(1000,Math.round(v)); }));
     block.appendChild(r2);
     var r3=cfgRow("Learning rate α:");
     r3.appendChild(rangeInput(cfg.learning_rate, 0.05, 1, 0.05, function(v){ cfg.learning_rate=v; }));
     block.appendChild(r3);
-    var r4=cfgRow("Discount γ:");
-    r4.appendChild(rangeInput(cfg.discount, 0, 1, 0.05, function(v){ cfg.discount=v; }));
-    block.appendChild(r4);
-    var r5=cfgRow("Exploration ε (fades while training):");
-    r5.appendChild(rangeInput(cfg.exploration, 0, 1, 0.05, function(v){ cfg.exploration=v; }));
-    block.appendChild(r5);
-    var r6=cfgRow("Rewards: win");
-    r6.appendChild(numInput(cfg.rewards.win, 0.1, -5, 5, function(v){ cfg.rewards.win=v; }));
-    var s1=document.createElement("span"); s1.textContent="draw";
-    r6.appendChild(s1);
-    r6.appendChild(numInput(cfg.rewards.draw, 0.1, -5, 5, function(v){ cfg.rewards.draw=v; }));
-    var s2=document.createElement("span"); s2.textContent="loss";
-    r6.appendChild(s2);
-    r6.appendChild(numInput(cfg.rewards.loss, 0.1, -5, 5, function(v){ cfg.rewards.loss=v; }));
-    block.appendChild(r6);
 
     var trainBtn=document.createElement("button"); trainBtn.type="button"; trainBtn.className="btn btn--teal";
     trainBtn.textContent="Train now!";
@@ -1461,7 +1403,7 @@
 
     var eff=effectiveBrain("rl");
     var intro=document.createElement("div"); intro.className="cfg-row";
-    intro.innerHTML='<span class="help" style="margin:0;font-size:13px;">Current brain: '+
+    intro.innerHTML='<span class="help" style="margin:0;font-size:13px;">Current AI: '+
       esc(eff.positions!==undefined?eff.positions:"?")+' positions learned.</span>';
     block.appendChild(intro);
     if(eff.curve && eff.curve.length>1){
@@ -1502,9 +1444,7 @@
   function loadMakeEditor(){
     makeBody.innerHTML="";
     if(!BRAINS[makeKey]){
-      var meta=ORDER.filter(function(o){ return o.key===makeKey; })[0];
-      makeBody.innerHTML='<p class="help">Run <b>'+esc(meta.file)+
-        '</b> first, then reload the page — this brain isn\'t built yet.</p>';
+      makeBody.innerHTML='<p class="help">This AI isn\'t available yet.</p>';
       return;
     }
     var cfg=draft(makeKey);
@@ -1619,7 +1559,7 @@
     } else {
       CUSTOM[makeKey]={config:cfg};
     }
-    selectedBrain=makeKey;   // "Apply & play" switches the Play tab to this brain
+    selectedBrain=makeKey;   // "Apply" also switches the Play tab to this AI
     renderMakePicker(); renderBrainPicker();
     newGame(game?game.human:X);
   });
@@ -1630,46 +1570,6 @@
     renderMakePicker(); renderBrainPicker();
     loadMakeEditor();
     newGame(game?game.human:X);
-  });
-
-  function pyStr(s){ return "'"+String(s).replace(/'/g, "\\'")+"'"; }
-  function pyValue(v){
-    if(typeof v==="number") return String(v);
-    if(typeof v==="boolean") return v?"True":"False";
-    if(Array.isArray(v)){
-      if(v.length===2 && v.every(function(x){ return typeof x==="number" || typeof x==="string"; })){
-        return "("+v.map(pyValue).join(", ")+")";
-      }
-      return "[\n        "+v.map(pyValue).join(",\n        ")+",\n    ]";
-    }
-    if(typeof v==="object"){
-      return "{\n        "+Object.keys(v).map(function(k){
-        return pyStr(k)+": "+pyValue(v[k]);
-      }).join(",\n        ")+",\n    }";
-    }
-    return pyStr(v);
-  }
-
-  $("exportMakeBtn").addEventListener("click", function(){
-    if(!BRAINS[makeKey] && !CUSTOM[makeKey]) return;
-    var file=ORDER.filter(function(o){ return o.key===makeKey; })[0].file;
-    var text="# paste this into "+file+", replacing the CONFIG = { ... } block\n"+
-              "CONFIG = "+pyValue(draft(makeKey));
-    $("exportPre").textContent=text;
-    $("makeExport").classList.remove("hidden");
-    $("makeExport").open=true;
-    $("copyExportNote").textContent="";
-  });
-
-  $("copyExportBtn").addEventListener("click", function(){
-    var text=$("exportPre").textContent;
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){
-        $("copyExportNote").textContent="✓ Copied!";
-      });
-    } else {
-      $("copyExportNote").textContent="Select the text and copy it.";
-    }
   });
 
   /* ============================ tabs & boot ============================ */

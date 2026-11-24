@@ -44,15 +44,13 @@ One game, four different sources of knowledge. The lab is built around the quest
   panel shows *exactly why* it chose that square.
 - **Compare** — set up any position and ask all four brains: "what would you
   play here?" Side by side, the four ways of thinking become visible.
-- **Make** — the sandbox. Change any brain's CONFIG right in the page:
-  rules with points (add / remove / reorder), simulations and the score formula,
-  search depth / alpha-beta / evaluation weights, and the full RL training
-  recipe with a **Train now!** button that trains the RL brain live in the
-  browser and draws its learning curve. **Apply & play** makes every tab use
-  your edited version (marked ✏️). **Show Python CONFIG** prints the exact
-  `CONFIG = { ... }` to paste into the brain's .py file — that's how a brain
-  you built in the sandbox becomes permanent (and rerun-able in Python).
-  **Reset to file** throws your edits away.
+- **Make** — keep it simple. Each AI exposes just its core idea:
+  Heuristics lets you edit the rule list (points, add / remove / reorder);
+  Probability has one knob, the simulated games per move; Search has one knob,
+  the look-ahead depth; RL has training games, learning rate and a
+  **Train now!** button that trains it live in the browser and draws its
+  learning curve. **Apply** makes every tab use your version (marked ✏️);
+  **Reset to default** brings the original back.
 - **Scorecard** — every brain plays the same three test opponents:
   **Randomo** (plays randomly), **Greedy** (wins/blocks, takes center, corners, edges)
   and **Minimax** (a perfect player — it can never lose).

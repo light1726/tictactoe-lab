@@ -52,7 +52,7 @@ from board import X, O, EMPTY, legal_moves, play, winner, is_full, \
 
 CONFIG = {
     # How many training games to play.
-    "episodes": 30000,
+    "episodes": 50000,
 
     # Q-learning update:  Q = Q + learning_rate * (target - Q)
     # Bigger = believe each new experience more strongly.
@@ -65,7 +65,7 @@ CONFIG = {
     # believed-best one. This is the STARTING value — it fades toward 0.02
     # as the brain gains experience. (Early on it must explore to discover
     # ideas; near the end it should mostly use what it learned.)
-    "exploration": 0.3,
+    "exploration": 0.5,
 
     # What the game result is worth.
     "rewards": {"win": +1, "draw": 0, "loss": -1},
@@ -74,10 +74,10 @@ CONFIG = {
     # "random" | "greedy" | "self" | "minimax" | "mix"
     # ("mix" picks a random partner for each game: it practices against
     #  messy, tricky AND perfect opponents — the all-rounder recipe.)
-    "train_against": "random",
+    "train_against": "mix",
 
     # Record a point of the learning curve every this many games.
-    "log_every": 3000,
+    "log_every": 5000,
 }
 
 # The Q-table: position -> {move: value}.  Position keys are canonical
