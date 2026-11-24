@@ -1013,7 +1013,7 @@
       if(!game || game.over || game.player!==game.brain) return;
       var res=brainMove(game.brainKey, game.board, game.brain);
       doMove(res.move, res.view, game.brain);
-      if(!game.over && res.view) showBrainView(res.view, game.brainKey);
+      if(res.view) showBrainView(res.view, game.brainKey);   // show reasoning even for a winning move
     }, 420);
   }
 
