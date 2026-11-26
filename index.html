@@ -705,8 +705,9 @@
       if(best===null || score>best){ best=score; move=m; }
     }
     // keep a few complete records of games that took the chosen move
+    var recCount=Math.min(10,cfg.simulations);
     var records=[], childB=play(b,move,p), nxt2=opp(p);
-    for(var rc=0;rc<6;rc++){
+    for(var rc=0;rc<recCount;rc++){
       var pr=playout(childB,nxt2,cfg.imagined_player);
       records.push({board:pr.board, result: pr.result===p?"win":(pr.result==="draw"?"draw":"loss")});
     }
@@ -927,8 +928,9 @@
                '</div>';
       }).join("");
       html+=stepBox(2, "Records of past games",
-        '<div class="explain">It checks records of complete games that started from this state and took move square <b>'+(view.chosen+1)+'</b>. The current state is shown in <span style="color:#7EF0E4;">green</span>, the move is highlighted.</div>'+
+        '<div class="explain">It checks records of complete games that started from this state and took move square <b>'+(view.chosen+1)+'</b>. The current state is shown in <span style="color:#7EF0E4;">green</span>, the move is highlighted. It repeats this for <b>every possible next move</b>.</div>'+
         '<div class="reply-grid">'+recCards+'</div>'+
+        (nSim>10 ? '<div class="more-moves">More records … up to '+nSim+' in total.</div>' : '')+
         '<div class="explain">Counting all '+nSim+' records for this move: <b>'+chm.win+' wins · '+chm.draw+' draws · '+chm.loss+' losses</b>.</div>');
       html+=stepBox(3, "Each move — its chances",
         '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
