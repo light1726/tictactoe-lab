@@ -166,16 +166,17 @@
     border:2px solid rgba(255,255,255,.5);border-radius:999px;padding:4px 12px;margin-bottom:10px;
   }
   .cand{
-    font-family:"DM Mono",monospace;font-size:14px;
+    font-family:"DM Mono",monospace;font-size:15px;
     background:#fff;border:2px solid var(--line);border-radius:9px;
-    padding:6px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    padding:9px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   }
   .cand .sq{
-    font-family:"Fredoka",sans-serif;font-weight:700;font-size:16px;
+    font-family:"Fredoka",sans-serif;font-weight:700;font-size:19px;
     background:var(--grape-pale);color:var(--grape-deep);
-    border-radius:7px;padding:0 7px;
+    border-radius:8px;padding:1px 10px;
   }
-  .cand .val{font-weight:600;font-size:13px;color:#5b5470;}
+  .cand .val{font-weight:600;font-size:14px;color:#5b5470;}
+  .cand .sub{font-size:12.5px;}
   .cand .val.win{color:var(--teal-deep);}
   .cand .val.lose{color:var(--bad);}
   .cand.top{border-color:var(--sun-deep);}
@@ -302,12 +303,16 @@
 
   /* ---------- Step-by-step thinking ---------- */
   .step{background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.28);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
-  .step-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px;color:#fff;margin-bottom:7px;}
-  .step-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:var(--sun);color:var(--ink);font-weight:700;font-size:13px;border:2px solid var(--ink);flex:0 0 auto;}
-  .step .explain{font-size:13.5px;font-weight:600;color:rgba(255,255,255,.93);line-height:1.6;}
-  .fact-chips{display:flex;flex-wrap:wrap;gap:6px;}
-  .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:2px 9px;font-size:13px;font-weight:700;color:var(--ink);}
-  .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:9px 13px;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:2px;}
+  .step-head{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;color:#fff;margin-bottom:8px;}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:50%;background:var(--sun);color:var(--ink);font-weight:700;font-size:15px;border:2px solid var(--ink);flex:0 0 auto;}
+  .step .explain{font-size:15px;font-weight:600;color:rgba(255,255,255,.95);line-height:1.55;}
+  .fact-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:3px 12px;font-size:14.5px;font-weight:700;color:var(--ink);}
+  .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:11px 15px;font-weight:800;font-size:18px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:4px;}
+  .res{font-size:16px;font-weight:800;color:var(--ink);}
+  .res .w{color:var(--grape-deep);} .res .d{color:var(--sun-deep);} .res .l{color:var(--bad);}
+  .res.win{color:var(--teal-deep);} .res.draw{color:var(--sun-deep);} .res.lose{color:var(--bad);}
+  .cand.picked .res, .cand.picked .res .w, .cand.picked .res .d, .cand.picked .res .l{color:#fff;}
 
   .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
@@ -408,8 +413,8 @@
   var BRAINS = window.BRAINS_DATA || {};
   var ORDER = [
     {key:"heuristics", file:"heuristics.py", name:"Logic",       tag:"facts and rules"},
-    {key:"probability", file:"probability.py", name:"Probability", tag:"records of games"},
     {key:"search",      file:"search.py",      name:"Search",      tag:"looking ahead"},
+    {key:"probability", file:"probability.py", name:"Probability", tag:"records of games"},
     {key:"rl",          file:"rl.py",          name:"RL",  tag:"learning by playing"}
   ];
 
@@ -705,82 +710,72 @@
     if(view.type==="heuristics"){
       var ruleLines=view.cfg.rules.map(function(action, idx){
         var ms=ruleMoves(b,p,action);
-        var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓ this rule decides</span>' : '';
+        var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓</span>' : '';
         var cls = (idx===view.matchedIndex) ? "explain dec" : "explain";
-        if(!ms.length) return '<div class="'+cls+'">'+(idx+1)+'. “'+esc(action)+'” → nothing (it doesn\'t apply)'+tick+'</div>';
-        return '<div class="'+cls+'">'+(idx+1)+'. <b>“'+esc(action)+'”</b> → '+
-          ms.map(function(m){ return "square "+(m+1); }).join(", ")+tick+'</div>';
+        if(!ms.length) return '<div class="'+cls+'">'+(idx+1)+'. '+esc(action)+' — no'+tick+'</div>';
+        return '<div class="'+cls+'">'+(idx+1)+'. <b>'+esc(action)+'</b> → squares '+
+          ms.map(function(m){ return m+1; }).join(", ")+tick+'</div>';
       }).join("");
       html+=stepBox(2, "Check the rules in order", ruleLines);
       if(view.matchedIndex>=0){
         var action=view.cfg.rules[view.matchedIndex];
-        html+='<div class="decision">Decision: “'+esc(action)+'” applies first → play square <b>'+(view.chosen+1)+'</b>.</div>';
+        html+='<div class="decision">“'+esc(action)+'” applies first → <b>play square '+(view.chosen+1)+'</b></div>';
       } else {
-        html+='<div class="decision">Decision: no rule applies — it takes the first empty square ('+(view.chosen+1)+').</div>';
+        html+='<div class="decision">No rule applies → <b>play the first empty square ('+(view.chosen+1)+')</b></div>';
       }
     }
     else if(view.type==="probability"){
       var nSim=view.cfg.simulations;
-      html+=stepBox(2, "Record games for each move",
-        '<div class="explain">For each square it played <b>'+nSim+'</b> games with random moves and recorded the results:</div>'+
-        '<div class="cand-grid">'+view.perMove.map(function(s){
-          var cls="cand";
-          if(s.m===view.chosen) cls+=" picked";
-          var wp=Math.round(100*s.win/nSim), dp=Math.round(100*s.draw/nSim), lp=Math.round(100*s.loss/nSim);
-          var mx=Math.max(1,s.win,s.draw,s.loss);
-          return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-                 '<span class="bars" title="win/draw/loss">'+
-                   '<span class="b w" style="height:'+Math.max(2,Math.round(26*s.win/mx))+'px"></span>'+
-                   '<span class="b d" style="height:'+Math.max(2,Math.round(26*s.draw/mx))+'px"></span>'+
-                   '<span class="b l" style="height:'+Math.max(2,Math.round(26*s.loss/mx))+'px"></span>'+
-                 '</span>'+
-                 '<span class="sub">W '+s.win+' ('+wp+'%) · D '+s.draw+' ('+dp+'%) · L '+s.loss+' ('+lp+'%)</span></div>';
-        }).join("")+'</div>');
-      html+=stepBox(3, "Expected score",
-        '<div class="explain">Expected score = wins × 1 + draws × 0 + losses × (−1)</div>'+
-        '<div class="cand-grid">'+view.perMove.map(function(s){
-          var cls="cand";
-          if(s.m===view.chosen) cls+=" picked";
-          return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-                 '<span class="val">'+s.win+'×1 + '+s.draw+'×0 + '+s.loss+'×(−1) = <b>'+(s.score>0?"+":"")+s.score+'</b></span></div>';
-        }).join("")+'</div>');
-      html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the highest expected score → play there.</div>';
-    }
-    else if(view.type==="search"){
-      var note = view.cfg.depth<9 ? ' It stopped early and judged unfinished positions with a simple score.' : ' Every game was played out to its end.';
-      html+=stepBox(2, "Look ahead",
-        '<div class="explain">It tried every move, then every reply, then every reply to that… It visited <b>'+view.nodes+'</b> positions in '+view.ms+' ms.'+note+'</div>');
-      html+=stepBox(3, "Best guaranteed result", '<div class="cand-grid">'+view.perMove.map(function(s){
+      var rows=view.perMove.map(function(s){
         var cls="cand";
         if(s.m===view.chosen) cls+=" picked";
-        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+valueChip(s.value)+'</div>';
-      }).join("")+'</div>');
+        var wp=Math.round(100*s.win/nSim), dp=Math.round(100*s.draw/nSim), lp=Math.round(100*s.loss/nSim);
+        var exp=Math.round(1000*s.score/nSim)/1000;
+        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+               '<span class="res"><span class="w">win '+wp+'%</span> · <span class="d">draw '+dp+'%</span> · <span class="l">loss '+lp+'%</span></span>'+
+               '<span class="sub">expected '+(exp>0?"+":"")+exp.toFixed(2)+'</span></div>';
+      }).join("");
+      html+=stepBox(2, "Each move — its chances",
+        '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
+      html+='<div class="decision">Square <b>'+(view.chosen+1)+'</b> has the best expected score → <b>play square '+(view.chosen+1)+'</b></div>';
+    }
+    else if(view.type==="search"){
+      var rows=view.perMove.map(function(s){
+        var cls="cand";
+        if(s.m===view.chosen) cls+=" picked";
+        var label = s.value===1000 ? '<span class="res win">Win</span>'
+                  : (s.value===0 ? '<span class="res draw">Draw</span>'
+                  : (s.value===-1000 ? '<span class="res lose">Lose</span>'
+                  : '<span class="res eval">'+s.value+'</span>'));
+        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+label+'</div>';
+      }).join("");
+      html+=stepBox(2, "Each move — its guaranteed result",
+        '<div class="explain">every reply was played out · '+view.nodes+' positions checked</div><div class="cand-grid">'+rows+'</div>');
       var bestV=view.perMove.filter(function(s){ return s.m===view.chosen; })[0].value;
       var dec;
-      if(bestV===1000) dec='square <b>'+(view.chosen+1)+'</b> <b>wins</b> — it takes the win.';
-      else if(bestV===0) dec='square <b>'+(view.chosen+1)+'</b> guarantees at least a <b>draw</b> — it can never lose.';
-      else dec='every move loses against a perfect opponent — square <b>'+(view.chosen+1)+'</b> is the best it can do.';
-      html+='<div class="decision">Decision: '+dec+'</div>';
+      if(bestV===1000) dec='<b>play square '+(view.chosen+1)+'</b> — it wins';
+      else if(bestV===0) dec='<b>play square '+(view.chosen+1)+'</b> — at least a draw (never loses)';
+      else dec='<b>play square '+(view.chosen+1)+'</b> — the least bad';
+      html+='<div class="decision">'+dec+'</div>';
     }
     else if(view.type==="rl"){
       if(!view.seen){
-        html+=stepBox(2, "Learned values",
-          '<div class="explain">This position is <b>not in its learned table</b> — it has never practiced it, so it can only guess.</div>');
-        html+='<div class="decision">Decision: no experience here — it picks a random square.</div>';
+        html+=stepBox(2, "Each move — its learned value",
+          '<div class="explain">This position is not in its learned table — it can only guess.</div>');
+        html+='<div class="decision">No experience here → <b>random square</b></div>';
       } else {
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
-        html+=stepBox(2, "Learned values", '<div class="cand-grid">'+view.perMove.map(function(s){
+        var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.q===topQ) cls+=" top";
           if(s.m===view.chosen) cls+=" picked";
           return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-                 '<span class="val">value = '+s.q.toFixed(2)+'</span></div>';
-        }).join("")+'</div>');
-        html+=stepBox(3, "How it learned",
-          '<div class="explain">After every training game it updated the move it played:<br>'+
-          '<b>new value = old value + α × (reward − old value)</b><br>'+
-          'e.g. α = ½: 0 + ½ × (+1 − 0) = 0.5 after a win. Win = +1, draw = 0, loss = −1.</div>');
-        html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the highest learned value → play there.</div>';
+                 '<span class="res">value <b>'+s.q.toFixed(2)+'</b></span></div>';
+        }).join("");
+        html+=stepBox(2, "Each move — its learned value",
+          '<div class="explain">new value = old + α × (reward − old) · win +1 · draw 0 · loss −1</div>'+
+          '<div class="cand-grid">'+rows+'</div>');
+        html+='<div class="decision">Square <b>'+(view.chosen+1)+'</b> has the highest value → <b>play square '+(view.chosen+1)+'</b></div>';
         html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
         html+=curveSvg(view.cfg.curve);
       }
