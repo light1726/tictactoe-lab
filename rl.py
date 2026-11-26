@@ -100,9 +100,22 @@ def q_values(b, p):
 
 
 def best_known_move(b, p):
-    """Greedy on the Q-table: the highest-valued move we know so far."""
+    """Greedy on the Q-table, on top of two built-in reflexes:
+    take an immediate win, and block an immediate threat. Everything
+    else comes from the learned values (a random guess if unseen)."""
     moves = legal_moves(b)
-    qs = q_values(b, p)
+    # reflex 1: take a win
+    for m in moves:
+        if winner(play(b, m, p)) == p:
+            return m
+    # reflex 2: block an immediate threat
+    foe = opponent(p)
+    for m in moves:
+        if winner(play(b, m, foe)) == foe:
+            return m
+    qs = Q.get(state_key(b, p))
+    if qs is None:
+        return random.choice(moves)
     best = max(qs.get(m, 0) for m in moves)
     return random.choice([m for m in moves if qs.get(m, 0) == best])
 
@@ -196,8 +209,9 @@ def train():
     for episode in range(1, total + 1):
         # Alternate roles so the brain practices BOTH sides of the board.
         if CONFIG["train_against"] == "mix":
-            # A different training partner for each game.
-            _partner_mode = random.choice(["random", "greedy", "minimax"])
+            # A different training partner for each game; random appears
+            # twice so that the brain also sees unusual positions.
+            _partner_mode = random.choice(["random", "random", "greedy", "minimax"])
         eps = current_exploration(episode, total)
         path, reward = play_episode(X if episode % 2 == 1 else O, eps)
         learn(path, reward)

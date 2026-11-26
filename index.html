@@ -419,10 +419,10 @@
 </div>
 
 <!-- bump ?v= whenever the brains are regenerated (cache-busting) -->
-<script src="brains/heuristics.js?v=4"></script>
-<script src="brains/probability.js?v=4"></script>
-<script src="brains/search.js?v=4"></script>
-<script src="brains/rl.js?v=4"></script>
+<script src="brains/heuristics.js?v=6"></script>
+<script src="brains/probability.js?v=6"></script>
+<script src="brains/search.js?v=6"></script>
+<script src="brains/rl.js?v=6"></script>
 
 <script>
 (function(){
@@ -765,18 +765,30 @@
     var key=rlKey(b,p);
     var qs=qtable[key];
     var lm=legalMoves(b);
+    function perMove(){
+      if(!qs) return null;
+      var per=[], i;
+      for(i=0;i<lm.length;i++){
+        var q=qs[lm[i]]!==undefined?qs[lm[i]]:0;
+        per.push({m:lm[i], q:q});
+      }
+      return per;
+    }
+    // two built-in reflexes that always apply: take a win, block a threat.
+    var foe=opp(p), k;
+    for(k=0;k<lm.length;k++) if(winner(play(b,lm[k],p))===p)
+      return {move:lm[k], view:{type:"rl", seen:!!qs, chosen:lm[k], perMove:perMove(), reflex:"win", cfg:cfg}};
+    for(k=0;k<lm.length;k++) if(winner(play(b,lm[k],foe))===foe)
+      return {move:lm[k], view:{type:"rl", seen:!!qs, chosen:lm[k], perMove:perMove(), reflex:"block", cfg:cfg}};
     if(!qs){
-      return {move:randomMove(b), view:{type:"rl", seen:false, chosen:null, qs:null, cfg:cfg}};
+      // never practiced and no reflex applies — a pure guess
+      return {move:randomMove(b), view:{type:"rl", seen:false, chosen:null, perMove:null, reflex:null, cfg:cfg}};
     }
-    var best=null, cands=[], perMove=[], i;
-    for(i=0;i<lm.length;i++){
-      var q=qs[lm[i]]!==undefined?qs[lm[i]]:0;
-      perMove.push({m:lm[i], q:q});
-      if(best===null || q>best) best=q;
-    }
-    for(i=0;i<perMove.length;i++) if(perMove[i].q===best) cands.push(perMove[i].m);
+    var per=perMove(), best=null, cands=[], i;
+    for(i=0;i<per.length;i++) if(best===null || per[i].q>best) best=per[i].q;
+    for(i=0;i<per.length;i++) if(per[i].q===best) cands.push(per[i].m);
     var move=pick(cands);
-    return {move:move, view:{type:"rl", seen:true, chosen:move, perMove:perMove, cfg:cfg}};
+    return {move:move, view:{type:"rl", seen:true, chosen:move, perMove:per, reflex:null, cfg:cfg}};
   }
 
   function brainMove(name,b,p){
@@ -913,9 +925,14 @@
     else if(view.type==="rl"){
       if(!view.seen){
         html+=stepBox(2, "Each move — its learned value",
-          '<div class="explain">This position is not in its learned table — it can only guess.</div>');
-        html+='<div class="decision">No experience here → <b>random square</b></div>';
-      } else {
+          '<div class="explain">This position is not in its learned table — it has never practiced it. It only has basic reflexes: <b>take a win</b>, <b>block an immediate threat</b>; otherwise it guesses.</div>');
+        html+='<div class="decision">No experience here → <b>reflex move</b></div>';
+      } else if(view.perMove){
+        if(view.reflex){
+          var reflexTxt = view.reflex==="win" ? "took the win"
+                        : "blocked your immediate threat";
+          html+='<div class="brain-foot" style="margin-top:8px;">Built-in reflex: it '+reflexTxt+' — reflexes always come before its learned values.</div>';
+        }
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
         function rlDisp(q){
           // rewards are win +10 / draw 0 / loss -10  ->  friendly 0-100 scale:
@@ -980,7 +997,7 @@
     heuristics:"The AI knows facts about the board — whose turn it is and which squares are taken — and a list of IF–THEN rules. It checks the rules in order and uses the first one that applies. All of its knowledge came from the rules a human wrote.",
     probability:"The AI doesn't know any strategy at all. For each square it rolls dice: it imagines the rest of the game played out randomly, again and again, and counts wins, draws and losses. Its smarts come from statistics — and from whoever it imagined playing against.",
     search:"The AI imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
-    rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
+    rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (win +10, draw 0, loss −10), and slowly nudged its values toward them. Two small reflexes are built in — take a win, block an immediate threat — but everything else comes from experience: it can only be good at games like the ones it practiced."
   };
   var game=null, aiTimer=null, brainVisible=false;
 
@@ -1444,7 +1461,7 @@
       var eps=cfg.exploration*(1-ep/cfg.episodes);
       if(eps<0.01) eps=0.01;
       // "mix": a different training partner for each game
-      var partner = cfg.train_against==="mix" ? pick(["random","greedy","minimax"]) : cfg.train_against;
+      var partner = cfg.train_against==="mix" ? pick(["random","random","greedy","minimax"]) : cfg.train_against;
       while(true){
         if(p===brainSide){
           var key=rlKey(b,p), lm=legalMoves(b);
