@@ -176,7 +176,9 @@
   .cand .sq{
     font-family:"Fredoka",sans-serif;font-weight:700;font-size:19px;
     background:var(--grape-pale);color:var(--grape-deep);
-    border-radius:8px;padding:1px 10px;
+    border-radius:8px;padding:1px 8px;
+    min-width:32px;text-align:center;box-sizing:border-box;
+    display:inline-flex;align-items:center;justify-content:center;
   }
   .cand .val{font-weight:600;font-size:14px;color:#5b5470;}
   .cand .sub{font-size:14px;font-weight:700;}
@@ -310,8 +312,9 @@
   .res{font-size:18px;font-weight:800;color:var(--ink);}
   .res.good{color:var(--teal-deep);} .res.mid{color:var(--sun-deep);} .res.bad{color:var(--bad);}
   .cand.picked .res.good, .cand.picked .res.mid, .cand.picked .res.bad{color:#fff;}
-  .poss{display:inline-block;background:var(--grape-pale);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:700;color:var(--ink);}
-  .res-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex:1 1 auto;}
+  .poss{display:inline-block;background:var(--grape-pale);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:700;color:var(--ink);width:245px;box-sizing:border-box;text-align:left;}
+  .subhead{font-weight:800;font-size:15.5px;color:var(--sun);margin:10px 0 6px;}
+  .subhead:first-child{margin-top:0;}
   .arrow{font-weight:800;font-size:18px;color:var(--ink);}
   .out{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:800;}
   .out.win{background:var(--teal);color:#fff;}
@@ -890,58 +893,64 @@
         function valWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "loss"); }
         function verbWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "lose"); }
         function outcomeChip(v){
-          // "X can force draw" is ambiguous about WHO draws — say it from my side.
+          // say the outcome from my side, not the opponent's
           var cls = v===1 ? "win" : (v===0 ? "draw" : "lose");
           var txt = v===1 ? "I will win" : ("worst "+foe+" can do to me: "+valWord(v));
           return '<span class="out '+cls+'">'+txt+'</span>';
         }
+        var ch=view.perMove.filter(function(s){ return s.m===view.chosen; })[0];
+        var rival = view.perMove.filter(function(s){ return s.m!==view.chosen && s.lowest>ch.lowest; })[0]
+                 || view.perMove.filter(function(s){ return s.m!==view.chosen; })[0];
+        function boardsHtml(mv){
+          var afterMy=play(b, mv.m, p);
+          return '<div class="reply-grid">'+mv.replies.map(function(rp){
+            var worst = rp.v===mv.lowest;
+            var board=play(afterMy, rp.r, foe);
+            var cells="";
+            for(var ci=0;ci<9;ci++){
+              var c=board[ci];
+              var cls="mini-cell";
+              if(c===X) cls+=" x";
+              if(c===O) cls+=" o";
+              if(ci===rp.r) cls+=" reply";
+              cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+            }
+            var vcls = rp.v===1 ? "win" : (rp.v===0 ? "draw" : "loss");
+            return '<div class="reply-card'+(worst?" worst":"")+'">'+
+                   '<div class="mini-board">'+cells+'</div>'+
+                   '<div class="res-chips">'+
+                   '  <span class="rchip win'+(vcls==="win"?" on":"")+'">win</span>'+
+                   '  <span class="rchip draw'+(vcls==="draw"?" on":"")+'">draw</span>'+
+                   '  <span class="rchip loss'+(vcls==="loss"?" on":"")+'">loss</span>'+
+                   '</div>'+
+                   '</div>';
+          }).join("")+'</div>';
+        }
+        var assured = ch.lowest===1 ? "even "+foe+"'s best reply still loses — I force a win"
+                    : (ch.lowest===0 ? "even "+foe+"'s best reply only draws — I can never lose"
+                    : "and "+foe+"'s best reply forces a loss on me");
+        var rivalLine = rival.lowest>ch.lowest
+          ? foe+"'s best reply here forces a loss on me — that is why square "+(rival.m+1)+" is worse."
+          : foe+"'s best reply here gives the same result — so square "+(rival.m+1)+" is just as safe.";
+        html+=stepBox(2, "The sub-graphs: my best move vs a worse move",
+          '<div class="subhead">My best move: square '+(view.chosen+1)+'</div>'+boardsHtml(ch)+
+          '<div class="explain">'+foe+' will take the reply that hurts me most (the “min” in minimax) — '+assured+'.</div>'+
+          '<div class="subhead">A worse move: square '+(rival.m+1)+'</div>'+boardsHtml(rival)+
+          '<div class="explain">'+rivalLine+'</div>');
         var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.m===view.chosen) cls+=" picked";
           return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-                 '<div class="res-stack">'+
                  '<span class="poss">Possible: '+s.poss.map(valWord).join(", ")+'</span>'+
-                 outcomeChip(s.lowest)+
-                 '</div></div>';
+                 outcomeChip(s.lowest)+'</div>';
         }).join("");
-        html+=stepBox(2, "Each move — what "+foe+" can do to me",
-          '<div class="explain">'+foe+' always picks the reply that hurts me the most.</div>'+
+        html+=stepBox(3, "Each move — what "+foe+" can do to me",
+          '<div class="explain">'+foe+' always picks the reply that hurts me the most — here are all my moves side by side.</div>'+
           '<div class="cand-grid">'+rows+'</div>');
-        var ch=view.perMove.filter(function(s){ return s.m===view.chosen; })[0];
-        var afterMy=play(b, view.chosen, p);
-        var replyBoards=ch.replies.map(function(rp){
-          var worst = rp.v===ch.lowest;
-          var board=play(afterMy, rp.r, foe);
-          var cells="";
-          for(var ci=0;ci<9;ci++){
-            var c=board[ci];
-            var cls="mini-cell";
-            if(c===X) cls+=" x";
-            if(c===O) cls+=" o";
-            if(ci===rp.r) cls+=" reply";
-            cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
-          }
-          var vcls = rp.v===1 ? "win" : (rp.v===0 ? "draw" : "loss");
-          return '<div class="reply-card'+(worst?" worst":"")+'">'+
-                 '<div class="mini-board">'+cells+'</div>'+
-                 '<div class="res-chips">'+
-                 '  <span class="rchip win'+(vcls==="win"?" on":"")+'">win</span>'+
-                 '  <span class="rchip draw'+(vcls==="draw"?" on":"")+'">draw</span>'+
-                 '  <span class="rchip loss'+(vcls==="loss"?" on":"")+'">loss</span>'+
-                 '</div>'+
-                 '</div>';
-        }).join("");
-        var assured = ch.lowest===1 ? "even "+foe+"'s best reply still loses — I force a win"
-                    : (ch.lowest===0 ? "even "+foe+"'s best reply only draws — I can never lose"
-                    : "and "+foe+"'s best reply forces a loss on me");
-        html+=stepBox(3, foe+"'s possible replies to my square "+(view.chosen+1),
-          '<div class="explain">'+foe+' will take the reply that hurts me most (the “min” in minimax) — '+assured+'.</div>'+
-          '<div class="reply-grid">'+replyBoards+'</div>');
         var dec;
         if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses → <b>play square '+(view.chosen+1)+'</b> — I force a win';
         else if(ch.lowest===0) dec=foe+'\'s most hurtful reply only draws → <b>play square '+(view.chosen+1)+'</b> — I never lose';
         else dec='Every move lets '+foe+' force a win on me → <b>play square '+(view.chosen+1)+'</b> — the least bad';
-        html+='<div class="decision">'+dec+'</div>';
       } else {
         var rows=view.perMove.map(function(s){
           var cls="cand";
