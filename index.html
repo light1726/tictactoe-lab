@@ -342,9 +342,15 @@
   .cand.picked .res.go, .cand.picked .res.no{color:rgba(255,255,255,.85);}
   .cand.picked .step-tick{background:var(--sun);color:var(--ink);}
 
-  .reply{display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.25);border-radius:9px;padding:8px 12px;margin-bottom:6px;font-weight:700;font-size:16px;color:#fff;}
-  .reply.worst{border-color:var(--sun-deep);background:rgba(232,169,30,.16);}
-  .reply b{font-weight:800;}
+  .reply-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .reply-card{background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 9px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .reply-card.worst{border-color:var(--sun-deep);background:rgba(232,169,30,.16);}
+  .mini-board{display:grid;grid-template-columns:repeat(3,23px);grid-template-rows:repeat(3,23px);gap:3px;}
+  .mini-cell{width:23px;height:23px;border:2px solid var(--ink);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:"DM Mono",monospace;font-weight:500;font-size:13px;color:var(--ink);}
+  .mini-cell.x{color:var(--grape-deep);}
+  .mini-cell.o{color:var(--sun-deep);}
+  .mini-cell.reply{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
+  .reply-label{font-size:13.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}
 
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
@@ -895,13 +901,28 @@
           '<div class="explain">'+foe+' always picks the reply that hurts me the most.</div>'+
           '<div class="cand-grid">'+rows+'</div>');
         var ch=view.perMove.filter(function(s){ return s.m===view.chosen; })[0];
-        var replyRows=ch.replies.map(function(rp){
+        var afterMy=play(b, view.chosen, p);
+        var replyBoards=ch.replies.map(function(rp){
           var worst = rp.v===ch.lowest;
-          return '<div class="reply'+(worst?" worst":"")+'">'+foe+' plays '+(rp.r+1)+' → '+
-                 '<b>I will '+verbWord(rp.v)+'</b>'+(worst?' <span class="step-tick">✗ hurts me most</span>':'')+'</div>';
+          var board=play(afterMy, rp.r, foe);
+          var cells="";
+          for(var ci=0;ci<9;ci++){
+            var c=board[ci];
+            var cls="mini-cell";
+            if(c===X) cls+=" x";
+            if(c===O) cls+=" o";
+            if(ci===rp.r) cls+=" reply";
+            cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+          }
+          return '<div class="reply-card'+(worst?" worst":"")+'">'+
+                 '<div class="mini-board">'+cells+'</div>'+
+                 '<div class="reply-label">'+foe+' plays '+(rp.r+1)+' → <b>I will '+verbWord(rp.v)+'</b>'+
+                 (worst?' <span class="step-tick">✗ hurts me most</span>':'')+'</div>'+
+                 '</div>';
         }).join("");
         html+=stepBox(3, foe+"'s replies to my square "+(view.chosen+1),
-          '<div class="explain">I must assume '+foe+' takes the reply that hurts me most — the “min” in minimax.</div>'+replyRows);
+          '<div class="explain">I must assume '+foe+' takes the reply that hurts me most — the “min” in minimax.</div>'+
+          '<div class="reply-grid">'+replyBoards+'</div>');
         var dec;
         if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses → <b>play square '+(view.chosen+1)+'</b> — I force a win';
         else if(ch.lowest===0) dec=foe+'\'s most hurtful reply only draws → <b>play square '+(view.chosen+1)+'</b> — I never lose';
