@@ -932,16 +932,18 @@
         return miniBoardHtml(st.board, st.m);
       }).join('<span class="demo-arrow">→</span>');
       var empty=new Array(9).fill(EMPTY);
-      var altSq = seq[0].m===0 ? 1 : 0;
-      var initRows=[
-        {board:miniBoardHtml(empty), pos:"position 1", move:"square "+(seq[0].m+1), val:"0"},
-        {board:miniBoardHtml(empty), pos:"position 1", move:"square "+(altSq+1), val:"0"}
-      ];
-      var updRows=[];
-      for(var ri=0;ri<2 && ri<seq.length;ri++){
-        var before = ri===0 ? empty : seq[ri-1].board;
-        var upd=Math.round(lr*Math.pow(disc, seq.length-1-ri)*reward*10)/10;
-        updRows.push({board:miniBoardHtml(before), pos:"position "+(ri+1), move:"square "+(seq[ri].m+1), val:"0 → "+(upd>0?"+":"")+upd});
+      // the AI plays O, so its own moves in the game are the 2nd, 4th, ... boards
+      var aiIdx=[];
+      for(var ai=1;ai<seq.length;ai+=2) aiIdx.push(ai);
+      if(aiIdx.length===0) aiIdx=[0];
+      var initRows=[], updRows=[];
+      var limit=Math.min(2, aiIdx.length);
+      for(var ri=0;ri<limit;ri++){
+        var idx=aiIdx[ri];
+        var before = idx===0 ? empty : seq[idx-1].board;
+        initRows.push({board:miniBoardHtml(before), pos:"position "+(idx+1), move:"square "+(seq[idx].m+1), val:"0"});
+        var upd=Math.round(lr*Math.pow(disc, seq.length-1-idx)*reward*10)/10;
+        updRows.push({board:miniBoardHtml(before), pos:"position "+(idx+1), move:"square "+(seq[idx].m+1), val:"0 → "+(upd>0?"+":"")+upd});
       }
       return stepBox(1, "Initialize the value table",
                '<div class="explain">Every (state, move) starts at 0.</div>'+
@@ -1159,8 +1161,7 @@
           : "No win to take and no threat to block — so it takes the move with the highest learned value.";
         html+=stepBox(3, "Reflexes first, then the highest value", '<div class="explain">'+rlLead+'</div>');
         html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
-        html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
-        html+=curveSvg(view.cfg.curve);
+
       }
     }
     return html;
