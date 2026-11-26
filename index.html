@@ -800,7 +800,11 @@
         function valWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "loss"); }
         function verbWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "lose"); }
         function outcomeChip(v){
-          return '<span class="out '+(v===1?"win":(v===0?"draw":"lose"))+'">I will '+verbWord(v)+'</span>';
+          // "X can force win" would sound like X wins, so say it from my side.
+          // For draw/loss the opponent's forcing is the point — keep it.
+          var cls = v===1 ? "win" : (v===0 ? "draw" : "lose");
+          var txt = v===1 ? "I will win" : (foe+" can force "+valWord(v));
+          return '<span class="out '+cls+'">'+txt+'</span>';
         }
         var rows=view.perMove.map(function(s){
           var cls="cand";
