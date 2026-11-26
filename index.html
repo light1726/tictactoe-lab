@@ -307,6 +307,15 @@
   .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:3px 12px;font-size:14.5px;font-weight:700;color:var(--ink);}
   .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:11px 15px;font-weight:800;font-size:18px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:4px;}
   .res{font-size:18px;font-weight:800;color:var(--ink);}
+  .poss{display:inline-block;background:var(--grape-pale);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:700;color:var(--ink);}
+  .arrow{font-weight:800;font-size:18px;color:var(--ink);}
+  .out{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:800;}
+  .out.win{background:var(--teal);color:#fff;}
+  .out.draw{background:var(--sun);color:var(--ink);}
+  .out.lose{background:#f2c9c9;color:var(--bad);}
+  .cand.picked .out{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;}
+  .cand.picked .poss{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;}
+  .cand.picked .arrow{color:#fff;}
   .res .w{color:var(--grape-deep);} .res .d{color:var(--sun-deep);} .res .l{color:var(--bad);}
   .res.win{color:var(--teal-deep);} .res.draw{color:var(--sun-deep);} .res.lose{color:var(--bad);}
   .cand.picked .res, .cand.picked .res .w, .cand.picked .res .d, .cand.picked .res .l{color:#fff;}
@@ -789,11 +798,16 @@
       if(view.cfg.depth===9){
         var foe=opp(p);
         function valWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "loss"); }
+        function verbWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "lose"); }
+        function outcomeChip(v){
+          return '<span class="out '+(v===1?"win":(v===0?"draw":"lose"))+'">I will '+verbWord(v)+'</span>';
+        }
         var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.m===view.chosen) cls+=" picked";
           return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-                 '<span class="res">Possible: '+s.poss.map(valWord).join(" · ")+'; '+foe+' can force '+valWord(s.lowest)+'</span></div>';
+                 '<span class="poss">Possible: '+s.poss.map(valWord).join(", ")+'</span>'+
+                 '<span class="arrow">→</span>'+outcomeChip(s.lowest)+'</div>';
         }).join("");
         html+=stepBox(2, "Each move — what "+foe+" can do to me",
           '<div class="explain">'+foe+' always picks the reply that hurts me the most.</div>'+
@@ -802,7 +816,7 @@
         var replyRows=ch.replies.map(function(rp){
           var worst = rp.v===ch.lowest;
           return '<div class="reply'+(worst?" worst":"")+'">'+foe+' plays '+(rp.r+1)+' → '+
-                 '<b>'+valWord(rp.v)+'</b>'+(worst?' <span class="step-tick">✗ hurts me most</span>':'')+'</div>';
+                 '<b>I will '+verbWord(rp.v)+'</b>'+(worst?' <span class="step-tick">✗ hurts me most</span>':'')+'</div>';
         }).join("");
         html+=stepBox(3, foe+"'s replies to my square "+(view.chosen+1),
           '<div class="explain">I must assume '+foe+' takes the reply that hurts me most — the “min” in minimax.</div>'+replyRows);
