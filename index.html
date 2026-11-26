@@ -309,6 +309,7 @@
   .fact-chips{display:flex;flex-wrap:wrap;gap:7px;}
   .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:3px 12px;font-size:14.5px;font-weight:700;color:var(--ink);}
   .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:11px 15px;font-weight:800;font-size:18px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:4px;}
+  .output-box{background:#fff;border:2px solid var(--ink);border-radius:10px;padding:10px 16px;font-weight:800;font-size:17px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);display:inline-block;}
   .res{font-size:18px;font-weight:800;color:var(--ink);}
   .res.good{color:var(--teal-deep);} .res.mid{color:var(--sun-deep);} .res.bad{color:var(--bad);}
   .cand.picked .res.good, .cand.picked .res.mid, .cand.picked .res.bad{color:#fff;}
@@ -410,7 +411,6 @@
 
   <section class="stage stage--machine hidden" id="brainPanel" aria-labelledby="bp">
     <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
-    <h2 class="stage-head" id="bp"><span class="stage-num" style="background:var(--sun);">🧠</span>What the AI was thinking</h2>
     <span class="brain-lbl" id="brainLbl">…</span>
     <div id="brainBody"></div>
     <details class="log" id="brainHow">
@@ -797,7 +797,8 @@
       return {move:lm[k], view:{type:"rl", seen:!!qs, chosen:lm[k], perMove:perMove(), reflex:"block", cfg:cfg}};
     if(!qs){
       // never practiced and no reflex applies — a pure guess
-      return {move:randomMove(b), view:{type:"rl", seen:false, chosen:null, perMove:null, reflex:null, cfg:cfg}};
+      var guess=randomMove(b);
+      return {move:guess, view:{type:"rl", seen:false, chosen:guess, perMove:null, reflex:null, cfg:cfg}};
     }
     var per=perMove(), best=null, cands=[], i;
     for(i=0;i<per.length;i++) if(best===null || per[i].q>best) best=per[i].q;
@@ -862,10 +863,11 @@
       }).join("");
       html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
-        html+='<div class="decision">Rule '+(view.matchedIndex+1)+' applies first → <b>play square '+(view.chosen+1)+'</b></div>';
+        html+=stepBox(3, "The first rule that applies", '<div class="explain">Rule '+(view.matchedIndex+1)+' applies first — the rules above it did not.</div>');
       } else {
-        html+='<div class="decision">No rule applies → <b>play the first empty square ('+(view.chosen+1)+')</b></div>';
+        html+=stepBox(3, "The first rule that applies", '<div class="explain">No rule applies — it falls back to the first empty square.</div>');
       }
+      html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
     }
     else if(view.type==="probability"){
       var nSim=view.cfg.simulations;
@@ -880,13 +882,13 @@
       }).join("");
       html+=stepBox(2, "Each move — its chances",
         '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
-      html+='<div class="decision">Square <b>'+(view.chosen+1)+'</b> has the best expected score → <b>play square '+(view.chosen+1)+'</b></div>';
+      html+=stepBox(3, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b></div>');
     }
     else if(view.type==="search"){
       if(view.slipped){
         html+=stepBox(2, "A slip",
           '<div class="explain">Its caution is <b>'+view.cfg.caution+'%</b> — this time it slipped and played a <b>random square</b> instead of its best move.</div>');
-        html+='<div class="decision">Random square <b>'+(view.chosen+1)+'</b> — its best move would have been square <b>'+(view.best+1)+'</b>.</div>';
+        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b> <span style="font-weight:600;color:#5b5470;">(best would have been square '+(view.best+1)+')</span></div>');
       }
       else if(view.cfg.depth===9){
         var foe=opp(p);
@@ -948,9 +950,11 @@
           '<div class="explain">'+foe+' always picks the reply that hurts me the most — here are all my moves side by side.</div>'+
           '<div class="cand-grid">'+rows+'</div>');
         var dec;
-        if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses → <b>play square '+(view.chosen+1)+'</b> — I force a win';
-        else if(ch.lowest===0) dec=foe+'\'s most hurtful reply only draws → <b>play square '+(view.chosen+1)+'</b> — I never lose';
-        else dec='Every move lets '+foe+' force a win on me → <b>play square '+(view.chosen+1)+'</b> — the least bad';
+        if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses — I force a win.';
+        else if(ch.lowest===0) dec=foe+'\'s most hurtful reply only draws — I never lose.';
+        else dec='Every move lets '+foe+' force a win on me — this move is the least bad.';
+        html+=stepBox(4, "Choose the best worst case", '<div class="explain">'+dec+'</div>');
+        html+=stepBox(5, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
       } else {
         var rows=view.perMove.map(function(s){
           var cls="cand";
@@ -963,20 +967,18 @@
         html+=stepBox(2, "Each move — its score",
           '<div class="explain">looking only '+view.cfg.depth+' move(s) ahead, unfinished positions get a simple score · '+view.nodes+' positions checked</div>'+
           '<div class="cand-grid">'+rows+'</div>');
-        html+='<div class="decision"><b>play square '+(view.chosen+1)+'</b> — the best score</div>';
+        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b> — the best score</div>');
       }
     }
     else if(view.type==="rl"){
       if(!view.seen){
         html+=stepBox(2, "Each move — its learned value",
-          '<div class="explain">This position is not in its learned table — it has never practiced it. It only has basic reflexes: <b>take a win</b>, <b>block an immediate threat</b>; otherwise it guesses.</div>');
-        html+='<div class="decision">No experience here → <b>reflex move</b></div>';
+          '<div class="explain">This position is not in its learned table — it has never practiced it.</div>');
+        var unseenLead = view.reflex ? "A reflex applied — the only thing it knows here." : "Neither reflex applies, so it can only guess.";
+        html+=stepBox(3, "Reflexes first, then the highest value", '<div class="explain">'+unseenLead+'</div>');
+        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
       } else if(view.perMove){
-        if(view.reflex){
-          var reflexTxt = view.reflex==="win" ? "took the win"
-                        : "blocked your immediate threat";
-          html+='<div class="brain-foot" style="margin-top:8px;">Built-in reflex: it '+reflexTxt+' — reflexes always come before its learned values.</div>';
-        }
+
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
         function rlDisp(q){
           // rewards are win +10 / draw 0 / loss -10  ->  friendly 0-100 scale:
@@ -998,7 +1000,11 @@
         html+=stepBox(2, "Each move — its learned value",
           '<div class="explain">0 = a loss · 50 = a draw · 100 = a win — learned by: <b>new value = old + α × (reward − old)</b></div>'+
           '<div class="cand-grid">'+rows+'</div>');
-        html+='<div class="decision">Square <b>'+(view.chosen+1)+'</b> has the highest value → <b>play square '+(view.chosen+1)+'</b></div>';
+        var rlLead = view.reflex
+          ? (view.reflex==="win" ? "A reflex applied first — it took the win." : "A reflex applied first — it blocked your immediate threat.")
+          : "No win to take and no threat to block — so it takes the move with the highest learned value.";
+        html+=stepBox(3, "Reflexes first, then the highest value", '<div class="explain">'+rlLead+'</div>');
+        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
         html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
         html+=curveSvg(view.cfg.curve);
       }
