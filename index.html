@@ -367,6 +367,7 @@
   .mini-cell.o{color:var(--sun-deep);}
   .mini-cell.mine{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
   .mini-cell.reply{border:2px solid var(--bad);}
+  .mini-cell.gs{color:var(--teal-deep);font-weight:700;}
   .route-dots{color:rgba(255,255,255,.65);font-size:15px;line-height:0.7;letter-spacing:1px;margin-top:2px;}
   .route-result{font-size:13px;font-weight:800;}
   .route-result.win{color:#7EF0E4;}
@@ -683,8 +684,8 @@
   function playout(b,p,imagined){
     while(true){
       var w=winner(b);
-      if(w) return w;
-      if(isFull(b)) return "draw";
+      if(w) return {result:w, board:b};
+      if(isFull(b)) return {result:"draw", board:b};
       var m = imagined==="random" ? randomMove(b) : greedyMove(b,p);
       b=play(b,m,p); p=opp(p);
     }
@@ -697,13 +698,19 @@
       var tally={win:0,draw:0,loss:0};
       for(var s=0;s<cfg.simulations;s++){
         var r=playout(b2,nxt,cfg.imagined_player);
-        if(r===p) tally.win++; else if(r==="draw") tally.draw++; else tally.loss++;
+        if(r.result===p) tally.win++; else if(r.result==="draw") tally.draw++; else tally.loss++;
       }
       var score=cfg.score.win*tally.win + cfg.score.draw*tally.draw + cfg.score.loss*tally.loss;
       perMove.push({m:m, win:tally.win, draw:tally.draw, loss:tally.loss, score:score});
       if(best===null || score>best){ best=score; move=m; }
     }
-    return {move:move, view:{type:"probability", perMove:perMove, chosen:move, cfg:cfg}};
+    // keep a few complete records of games that took the chosen move
+    var records=[], childB=play(b,move,p), nxt2=opp(p);
+    for(var rc=0;rc<6;rc++){
+      var pr=playout(childB,nxt2,cfg.imagined_player);
+      records.push({board:pr.board, result: pr.result===p?"win":(pr.result==="draw"?"draw":"loss")});
+    }
+    return {move:move, view:{type:"probability", perMove:perMove, chosen:move, records:records, cfg:cfg}};
   }
 
   var searchNodes=0;
@@ -902,9 +909,30 @@
                '<span class="res"><span class="w">win '+wp+'%</span> · <span class="d">draw '+dp+'%</span> · <span class="l">loss '+lp+'%</span></span>'+
                '<span class="sub">expected '+(exp>0?"+":"")+exp.toFixed(2)+'</span></div>';
       }).join("");
-      html+=stepBox(2, "Each move — its chances",
+      var chm=view.perMove.filter(function(s){ return s.m===view.chosen; })[0];
+      var recCards=view.records.map(function(rc){
+        var cells="";
+        for(var ci=0;ci<9;ci++){
+          var c=rc.board[ci];
+          var cls="mini-cell";
+          if(b[ci]!==EMPTY) cls+=" gs";
+          if(ci===view.chosen) cls+=" mine";
+          if(c===X) cls+=" x";
+          if(c===O) cls+=" o";
+          cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+        }
+        return '<div class="reply-card'+(rc.result==="loss"?" worst":"")+'">'+
+               '<div class="mini-board">'+cells+'</div>'+
+               '<div class="route-result '+rc.result+'">record: '+rc.result+'</div>'+
+               '</div>';
+      }).join("");
+      html+=stepBox(2, "Records of past games",
+        '<div class="explain">It checks records of complete games that started from this state and took move square <b>'+(view.chosen+1)+'</b>. The current state is shown in <span style="color:#7EF0E4;">green</span>, the move is highlighted.</div>'+
+        '<div class="reply-grid">'+recCards+'</div>'+
+        '<div class="explain">Counting all '+nSim+' records for this move: <b>'+chm.win+' wins · '+chm.draw+' draws · '+chm.loss+' losses</b>.</div>');
+      html+=stepBox(3, "Each move — its chances",
         '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
-      html+=stepBox(3, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
+      html+=stepBox(4, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
     }
     else if(view.type==="search"){
       if(view.slipped){
