@@ -325,6 +325,7 @@
   .train-cell{background:rgba(0,0,0,.18);border:2px dashed rgba(255,255,255,.45);border-radius:12px;padding:12px 14px;margin-top:12px;}
   .train-head{font-weight:800;font-size:15.5px;color:var(--sun);margin-bottom:8px;}
   .demo-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:6px 0;}
+  .chip-v{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13px;font-weight:800;color:var(--ink);line-height:1.7;white-space:nowrap;}
   .demo-arrow{color:rgba(255,255,255,.7);font-weight:800;font-size:17px;}
   .demo-row .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.25);border-radius:5px;}
   .arrow{font-weight:800;font-size:18px;color:var(--ink);}
@@ -426,6 +427,11 @@
 
     <div class="board" id="board"></div>
     <div class="status" id="status">Your turn!</div>
+  </section>
+
+  <section class="stage stage--machine hidden" id="trainPanel" aria-labelledby="tp">
+    <h2 class="stage-head" id="tp"><span class="stage-num" style="background:var(--sun);">⚙️</span>Before this game — how RL learned</h2>
+    <div id="trainBody"></div>
   </section>
 
   <section class="stage stage--machine hidden" id="brainPanel" aria-labelledby="bp">
@@ -916,16 +922,25 @@
             return '<span class="mini-board">'+inner+'</span>';
           }).join('<span class="demo-arrow">→</span>');
           var step=Math.round(lr*winR*10)/10;
-          return '<div class="explain">This happened <b>before</b> this game: it trained by playing many games. It keeps a value table where every (state, move) starts at <b>0</b>.</div>'+
-                 '<div class="demo-row">'+cells+'</div>'+
-                 '<div class="route-result win">result: win → reward +'+winR+'</div>'+
-                 '<div class="explain">The reward travels back along every move of that game: <b>new value = old + α × (reward − old)</b>. e.g. the first move (square '+(seq[0].m+1)+'): 0 → +'+step+'. After thousands of games the values become real knowledge.</div>';
+          var initChips="";
+          for(var sq=1;sq<=9;sq++) initChips+='<span class="chip-v">square '+sq+': 0</span>';
+          return stepBox(1, "Initialize the value table",
+                   '<div class="explain">Every (state, move) starts at <b>0</b> — the brain knows nothing.</div>'+
+                   '<div class="demo-row">'+initChips+'</div>')+
+                 stepBox(2, "Play games and collect rewards",
+                   '<div class="explain">It plays whole games against practice partners, until each game ends with a result.</div>'+
+                   '<div class="demo-row">'+cells+'</div>'+
+                   '<div class="route-result win">result: win → reward +'+winR+'</div>')+
+                 stepBox(3, "Update the value table",
+                   '<div class="explain">The reward travels back along every move of that game: <b>new value = old + α × (reward − old)</b>. e.g. the first move (square '+(seq[0].m+1)+'): 0 → +'+step+'. After thousands of games the values become real knowledge.</div>');
         }
         if(isFull(nb)) break;
         b=nb; p2=opp(p2);
       }
     }
-    return '<div class="explain">It has trained by playing many games, learning a value table — this happened <b>before</b> this game.</div>';
+    return stepBox(1, "Initialize the value table", '<div class="explain">Every (state, move) starts at 0.</div>')+
+           stepBox(2, "Play games and collect rewards", '<div class="explain">It plays whole games against practice partners.</div>')+
+           stepBox(3, "Update the value table", '<div class="explain">Each result nudges the values of the moves that led to it.</div>');
   }
 
   function renderBrainView(view, b, p){
@@ -1119,7 +1134,6 @@
         html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
         html+=curveSvg(view.cfg.curve);
       }
-      html+='<div class="train-cell"><div class="train-head">Before this game — how the value table was learned</div>'+rlDemoHtml(view.cfg)+'</div>';
     }
     return html;
   }
@@ -1194,6 +1208,17 @@
   }
 
   var selectedBrain=null;
+  var trainPanel=$("trainPanel"), trainBody=$("trainBody");
+
+  function renderTrainPanel(){
+    var eff=effectiveBrain("rl");
+    if(eff) trainBody.innerHTML=rlDemoHtml(eff);
+  }
+  function syncTrainPanel(){
+    var show = selectedBrain==="rl" && document.querySelector(".tab.active") && document.querySelector(".tab.active").dataset.sec==="play";
+    trainPanel.classList.toggle("hidden", !show);
+    if(show) renderTrainPanel();
+  }
 
   function activeBrain(){
     return selectedBrain;
@@ -1214,6 +1239,7 @@
       if(!BRAINS[o.key]) btn.disabled=true;
       brainPicker.appendChild(btn);
     });
+    syncTrainPanel();
   }
 
   function setSide(side){
@@ -1578,6 +1604,7 @@
           '</b> · vs Greedy <b>'+tallyGames(pol, greedyMove)+'</b></div>');
         trainBtn.disabled=false;
         renderMakePicker(); renderBrainPicker();
+        renderTrainPanel();
         newGame(game?game.human:X);
       });
     });
@@ -1705,6 +1732,7 @@
     }
     selectedBrain=makeKey;   // "Apply" also switches the Play tab to this AI
     renderMakePicker(); renderBrainPicker();
+    if(makeKey==="rl") renderTrainPanel();
     newGame(game?game.human:X);
   });
 
@@ -1728,6 +1756,7 @@
     });
     // the brain panel only belongs on the Play tab (and only when fresh)
     brainPanel.classList.toggle("hidden", el.dataset.sec!=="play" || !brainVisible);
+    trainPanel.classList.toggle("hidden", el.dataset.sec!=="play" || selectedBrain!=="rl");
   });
 
   // the exported rl.json uses longer names; give the arena short ones
