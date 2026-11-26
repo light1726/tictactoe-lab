@@ -860,8 +860,7 @@
         var tick = (idx===view.matchedIndex) ? '<span class="step-tick">✓</span>' : '';
         var sub = cands.length ? cands.map(function(m){ return m+1; }).join(", ") : "—";
         var txt='<span class="kw">IF</span><span class="cond-slot"><span class="chip-c">'+esc(r.c1)+'</span></span>'+
-                '<span class="kw">AND</span><span class="cond-slot">'+
-                (r.c2?'<span class="chip-c">'+esc(r.c2)+'</span>':'<span class="chip-c none">—</span>')+'</span>'+
+                (r.c2 ? '<span class="kw">AND</span><span class="cond-slot"><span class="chip-c">'+esc(r.c2)+'</span></span>' : '')+
                 '<span class="kw then">THEN</span><span class="chip-m">'+esc(r.m)+' <span class="chip-m-sub">· '+sub+'</span></span>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
                '<span class="rule-name">'+txt+'</span>'+tick+'</div>';
