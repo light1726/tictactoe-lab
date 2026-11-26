@@ -122,11 +122,15 @@
   /* ---------- Picker pills ---------- */
   .picks{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
   .pick{
+    display:inline-flex;align-items:center;gap:8px;
     font-family:"Fredoka",sans-serif;font-weight:600;font-size:15px;cursor:pointer;
     color:var(--ink);background:#fff;border:3px solid var(--ink);
-    border-radius:999px;padding:6px 14px;
+    border-radius:999px;padding:4px 14px 4px 5px;
     box-shadow:0 3px 0 var(--shadow);
   }
+  .avatar{width:28px;height:28px;border-radius:50%;border:2px solid var(--ink);background:#fff;object-fit:cover;flex:0 0 auto;}
+  .brain-lbl{display:inline-flex;align-items:center;gap:9px;}
+  .brain-lbl .avatar{width:32px;height:32px;}
   .pick:focus-visible{outline:3px solid var(--sun);outline-offset:2px;}
   .pick.active{background:var(--grape);color:#fff;border-color:var(--grape-deep);}
 
@@ -917,6 +921,12 @@
     return el?el.dataset.brain:"heuristics";
   }
 
+  function avatarHtml(key){
+    var meta=ORDER.filter(function(o){ return o.key===key; })[0];
+    var name = meta ? meta.name.toLowerCase() : key;   // "heuristics" -> "logic.png"
+    return '<img class="avatar" src="avatars/'+name+'.png" alt="" onerror="this.remove()">';
+  }
+
   var selectedBrain=null;
 
   function activeBrain(){
@@ -933,7 +943,7 @@
       var btn=document.createElement("button");
       btn.className="pick";
       btn.dataset.brain=o.key;
-      btn.textContent=o.name+(CUSTOM[o.key]?" ✏️":(BRAINS[o.key]?"":" (not built)"));
+      btn.innerHTML=avatarHtml(o.key)+esc(o.name)+(CUSTOM[o.key]?" ✏️":(BRAINS[o.key]?"":" (not built)"));
       if(o.key===selectedBrain) btn.classList.add("active");
       if(!BRAINS[o.key]) btn.disabled=true;
       brainPicker.appendChild(btn);
@@ -1006,7 +1016,7 @@
 
   function showBrainView(view, key, boardBefore, player){
     var meta=ORDER.filter(function(o){ return o.key===key; })[0];
-    brainLbl.textContent=meta.name+" just moved";
+    brainLbl.innerHTML=avatarHtml(key)+esc(meta.name+" just moved");
     $("brainBody").innerHTML=renderBrainView(view, boardBefore, player);
     brainVisible=true;
     brainPanel.classList.remove("hidden");
@@ -1063,7 +1073,7 @@
       var btn=document.createElement("button");
       btn.className="pick";
       btn.dataset.brain=o.key;
-      btn.textContent=o.name+(CUSTOM[o.key]?" ✏️":(BRAINS[o.key]?"":" (not built)"));
+      btn.innerHTML=avatarHtml(o.key)+esc(o.name)+(CUSTOM[o.key]?" ✏️":(BRAINS[o.key]?"":" (not built)"));
       if(!BRAINS[o.key]) btn.disabled=true;
       if(o.key===makeKey) btn.classList.add("active");
       makePicker.appendChild(btn);
