@@ -300,6 +300,15 @@
   .range-wrap{display:flex;align-items:center;gap:10px;flex:1 1 220px;}
   .range-wrap output{font-family:"DM Mono",monospace;font-size:14px;font-weight:500;min-width:34px;}
 
+  /* ---------- Step-by-step thinking ---------- */
+  .step{background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.28);border-radius:12px;padding:10px 12px;margin-bottom:10px;}
+  .step-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px;color:#fff;margin-bottom:7px;}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:var(--sun);color:var(--ink);font-weight:700;font-size:13px;border:2px solid var(--ink);flex:0 0 auto;}
+  .step .explain{font-size:13.5px;font-weight:600;color:rgba(255,255,255,.93);line-height:1.6;}
+  .fact-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:2px 9px;font-size:13px;font-weight:700;color:var(--ink);}
+  .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:9px 13px;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:2px;}
+
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
     .stage{padding:20px 15px;}
@@ -321,16 +330,13 @@
 
   <nav class="tabs" id="tabs" aria-label="sections">
     <button class="tab active" data-sec="play">Play</button>
-    <button class="tab" data-sec="compare">Compare</button>
     <button class="tab" data-sec="make">Make</button>
-    <button class="tab" data-sec="scorecard">Scorecard</button>
-    <button class="tab" data-sec="tournament">Tournament</button>
   </nav>
 
   <!-- ================= PLAY ================= -->
   <section class="stage" id="sec-play" aria-labelledby="p1">
     <h2 class="stage-head" id="p1"><span class="stage-num">1</span>Play an AI</h2>
-    <p class="help">Pick an AI and a side, then click a square. After the AI moves, the purple panel shows <b>exactly why</b> it chose that square.</p>
+    <p class="help">Pick an AI and a side, then click a square. After the AI moves, the purple panel shows <b>step by step</b> why it chose that square.</p>
 
     <div class="picks" style="margin-bottom:12px;">
       <span class="pick-label help" style="margin:0;align-self:center;">AI:</span>
@@ -362,64 +368,16 @@
     </details>
   </section>
 
-  <!-- ================= COMPARE ================= -->
-  <section class="stage hidden" id="sec-compare" aria-labelledby="p2">
-    <h2 class="stage-head" id="p2"><span class="stage-num">2</span>Compare the AIs</h2>
-    <p class="help">Set up any board you like (click a square to cycle it X → O → empty), choose whose turn it is, then ask all four AIs: <b>what would you play here — and why?</b></p>
-
-    <div class="setup-row">
-      <div class="mini" id="setupMini"></div>
-      <div class="picks">
-        <button class="pick active" data-turn="X" id="turnX">X to move</button>
-        <button class="pick" data-turn="O" id="turnO">O to move</button>
-      </div>
-      <div class="btn-row" style="gap:8px;">
-        <button class="btn btn--ghost" id="useGameBtn">Use my game board</button>
-        <button class="btn btn--teal" id="compareBtn">Compare!</button>
-      </div>
-    </div>
-    <div class="cmp-grid" id="cmpGrid"></div>
-    <p class="help hidden" id="cmpNote" style="text-align:center;color:var(--bad);margin:10px 0 0;"></p>
-  </section>
-
   <!-- ================= MAKE ================= -->
-  <section class="stage hidden" id="sec-make" aria-labelledby="p3">
-    <h2 class="stage-head" id="p3"><span class="stage-num">3</span>Make an AI</h2>
-    <p class="help">Change what this AI knows, then press <b>Apply</b> — every tab will use your version (marked ✏️). <b>Reset to default</b> brings the original back.</p>
+  <section class="stage hidden" id="sec-make" aria-labelledby="p2">
+    <h2 class="stage-head" id="p2"><span class="stage-num">2</span>Make an AI</h2>
+    <p class="help">Change what this AI knows, then press <b>Apply</b> — the Play tab will use your version (marked ✏️). <b>Reset to default</b> brings the original back.</p>
     <div class="picks" style="margin-bottom:14px;" id="makePicker"></div>
     <div id="makeBody"></div>
     <div class="btn-row" style="margin-top:14px;">
       <button class="btn btn--teal" id="applyMakeBtn">Apply</button>
       <button class="btn btn--ghost" id="resetMakeBtn">Reset to default</button>
     </div>
-  </section>
-
-  <!-- ================= SCORECARD ================= -->
-  <section class="stage hidden" id="sec-scorecard" aria-labelledby="p4">
-    <h2 class="stage-head" id="p4"><span class="stage-num">4</span>Scorecard</h2>
-    <p class="help">Every AI plays the same three test opponents — Randomo, Greedy and Minimax (a perfect player). This is how you check whether <b>your</b> changes made it better or worse.</p>
-    <div class="slider-row">
-      <span>Games per side:</span>
-      <input type="range" id="scoreGames" min="10" max="200" step="10" value="50">
-      <span id="scoreGamesVal" style="font-family:'DM Mono',monospace;">50</span>
-      <button class="btn btn--teal" id="runScoreBtn">Run scorecard</button>
-    </div>
-    <div class="table-scroll"><table class="res" id="scoreTable"></table></div>
-    <p class="help" id="scoreNote" style="margin:10px 0 0;font-size:13px;text-align:center;">Set the games and press “Run scorecard”.</p>
-  </section>
-
-  <!-- ================= TOURNAMENT ================= -->
-  <section class="stage hidden" id="sec-tournament" aria-labelledby="p5">
-    <h2 class="stage-head" id="p5"><span class="stage-num">5</span>Tournament</h2>
-    <p class="help">The AIs face <b>each other</b>, round-robin style. Which kind of knowledge wins the crown?</p>
-    <div class="slider-row">
-      <span>Games per match-up:</span>
-      <input type="range" id="tourGames" min="10" max="100" step="10" value="20">
-      <span id="tourGamesVal" style="font-family:'DM Mono',monospace;">20</span>
-      <button class="btn btn--teal" id="runTourBtn">Run tournament</button>
-    </div>
-    <div class="table-scroll"><table class="res" id="tourTable"></table></div>
-    <div class="champ hidden" id="champ"></div>
   </section>
 
 </div>
@@ -444,10 +402,10 @@
 
   var BRAINS = window.BRAINS_DATA || {};
   var ORDER = [
-    {key:"heuristics", file:"heuristics.py", name:"Heuristics",   tag:"rules written by a human"},
-    {key:"probability", file:"probability.py", name:"Probability", tag:"plays dice, then counts"},
-    {key:"search",      file:"search.py",      name:"Search",      tag:"looks into the future"},
-    {key:"rl",          file:"rl.py",          name:"RL",  tag:"learns from experience"}
+    {key:"heuristics", file:"heuristics.py", name:"Logic",       tag:"facts and rules"},
+    {key:"probability", file:"probability.py", name:"Probability", tag:"records of games"},
+    {key:"search",      file:"search.py",      name:"Search",      tag:"looking ahead"},
+    {key:"rl",          file:"rl.py",          name:"RL",  tag:"learning by playing"}
   ];
 
   /* ============================ the game ============================ */
@@ -745,92 +703,108 @@
     return '<span class="val">'+esc(v)+' (evaluation)</span>';
   }
 
-  function renderBrainView(view, panel, compact){
+  function stepBox(n, title, body){
+    return '<div class="step"><div class="step-head"><span class="step-num">'+n+'</span>'+esc(title)+'</div>'+body+'</div>';
+  }
+  function factsHtml(b, p){
+    var xs=[], os=[], em=[], i;
+    for(i=0;i<9;i++){
+      if(b[i]===X) xs.push(i+1);
+      else if(b[i]===O) os.push(i+1);
+      else em.push(i+1);
+    }
+    return '<div class="fact-chips">'+
+      '<span class="fact">It is '+p+'\'s turn</span>'+
+      '<span class="fact">X: squares '+(xs.length?xs.join(", "):"—")+'</span>'+
+      '<span class="fact">O: squares '+(os.length?os.join(", "):"—")+'</span>'+
+      '<span class="fact">Empty: '+(em.length?em.join(", "):"—")+'</span>'+
+    '</div>';
+  }
+  function renderBrainView(view, b, p){
     var html="";
+    html+=stepBox(1, "The facts", factsHtml(b, p));
     if(view.type==="heuristics"){
-      if(!compact){
-        html+='<p class="help" style="color:#fff;margin:0 0 10px;">Every square gets points from your rules. Highest total wins.</p>';
-      }
-      var top=view.scores.reduce(function(m,s){ return s.total>m?s.total:m; },0);
-      html+='<div class="cand-grid">';
-      view.scores.forEach(function(s){
+      var ruleLines=view.cfg.rules.map(function(r){
+        var ms=ruleMoves(b,p,r[1]);
+        if(!ms.length) return '<div class="explain">“'+esc(r[1])+'” → nothing (it doesn\'t apply)</div>';
+        return '<div class="explain"><b>“'+esc(r[1])+'”</b> → '+
+          ms.map(function(m){ return "square "+(m+1)+" (+"+r[0]+")"; }).join(", ")+'</div>';
+      }).join("");
+      html+=stepBox(2, "Apply the rules", ruleLines);
+      html+=stepBox(3, "Points for each move", '<div class="cand-grid">'+view.scores.map(function(s){
         var cls="cand";
-        if(s.total===top && !view.cfg.priority) cls+=" top";
         if(s.m===view.chosen) cls+=" picked";
         var hits=s.hits.map(function(h){ return h.action+" +"+h.points; }).join(" · ");
-        html+='<div class="'+cls+'"><span class="sq">'+s.m+'</span>'+
-              '<span class="val">'+(hits?esc(hits):"no rule applies")+'</span>'+
-              '<span style="margin-left:auto;font-weight:600;font-size:13px;">'+s.total+' pts</span></div>';
-      });
-      html+='</div>';
-      if(!compact){
-        html+='<div class="brain-foot">The rules: '+
-          esc(view.cfg.rules.map(function(r){ return r[0]+" pts → "+r[1]; }).join(" · "))+'</div>';
-      }
+        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+               '<span class="val">'+(hits?esc(hits):"no rule applies")+'</span>'+
+               '<span style="margin-left:auto;font-weight:600;font-size:13px;">'+s.total+' pts</span></div>';
+      }).join("")+'</div>');
+      var top=view.scores.reduce(function(m,s){ return s.total>m?s.total:m; },0);
+      html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the most points ('+top+') → play there.</div>';
     }
     else if(view.type==="probability"){
-      if(!compact){
-        html+='<p class="help" style="color:#fff;margin:0 0 10px;">For each square I imagined <b>'+view.cfg.simulations+
-          '</b> random games and counted what usually happened. (Imagined player: <b>'+esc(view.cfg.imagined_player)+'</b>.)</p>';
-      }
-      var maxCount=view.perMove.reduce(function(m,s){ return Math.max(m,s.win,s.draw,s.loss); },1);
-      html+='<div class="cand-grid">';
-      view.perMove.forEach(function(s){
-        var cls="cand";
-        var isTop=view.perMove.every(function(o){ return o.score<=s.score; });
-        if(isTop) cls+=" top";
-        if(s.m===view.chosen) cls+=" picked";
-        function bw(n){ return Math.max(2,Math.round(26*n/maxCount)); }
-        html+='<div class="'+cls+'"><span class="sq">'+s.m+'</span>'+
-          '<span class="bars" title="win/draw/loss">'+
-            '<span class="b w" style="height:'+bw(s.win)+'px"></span>'+
-            '<span class="b d" style="height:'+bw(s.draw)+'px"></span>'+
-            '<span class="b l" style="height:'+bw(s.loss)+'px"></span>'+
-          '</span>'+
-          '<span class="sub">W '+s.win+' · D '+s.draw+' · L '+s.loss+'</span>'+
-          '<span style="margin-left:auto;font-weight:600;font-size:13px;">'+s.score+' pts</span></div>';
-      });
-      html+='</div>';
-      if(!compact){
-        html+='<div class="brain-foot">Bar colors: <span style="color:#c9b8ff;">win</span> · <span style="color:#ffd97a;">draw</span> · <span style="color:#f4c4c4;">loss</span>. The AI is only as smart as the games it dreams.</div>';
-      }
+      var nSim=view.cfg.simulations;
+      html+=stepBox(2, "Record games for each move",
+        '<div class="explain">For each square it played <b>'+nSim+'</b> games with random moves and recorded the results:</div>'+
+        '<div class="cand-grid">'+view.perMove.map(function(s){
+          var cls="cand";
+          if(s.m===view.chosen) cls+=" picked";
+          var wp=Math.round(100*s.win/nSim), dp=Math.round(100*s.draw/nSim), lp=Math.round(100*s.loss/nSim);
+          var mx=Math.max(1,s.win,s.draw,s.loss);
+          return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+                 '<span class="bars" title="win/draw/loss">'+
+                   '<span class="b w" style="height:'+Math.max(2,Math.round(26*s.win/mx))+'px"></span>'+
+                   '<span class="b d" style="height:'+Math.max(2,Math.round(26*s.draw/mx))+'px"></span>'+
+                   '<span class="b l" style="height:'+Math.max(2,Math.round(26*s.loss/mx))+'px"></span>'+
+                 '</span>'+
+                 '<span class="sub">W '+s.win+' ('+wp+'%) · D '+s.draw+' ('+dp+'%) · L '+s.loss+' ('+lp+'%)</span></div>';
+        }).join("")+'</div>');
+      html+=stepBox(3, "Expected score",
+        '<div class="explain">Expected score = wins × 1 + draws × 0 + losses × (−1)</div>'+
+        '<div class="cand-grid">'+view.perMove.map(function(s){
+          var cls="cand";
+          if(s.m===view.chosen) cls+=" picked";
+          return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+                 '<span class="val">'+s.win+'×1 + '+s.draw+'×0 + '+s.loss+'×(−1) = <b>'+(s.score>0?"+":"")+s.score+'</b></span></div>';
+        }).join("")+'</div>');
+      html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the highest expected score → play there.</div>';
     }
     else if(view.type==="search"){
-      if(!compact){
-        html+='<p class="help" style="color:#fff;margin:0 0 10px;">I played out <b>every possible future</b> (depth '+view.cfg.depth+
-          (view.cfg.alpha_beta?" · alpha-beta ON":" · alpha-beta OFF")+') and scored each first move by my best guaranteed result.</p>';
-      }
-      html+='<div class="cand-grid">';
-      view.perMove.forEach(function(s){
+      var note = view.cfg.depth<9 ? ' It stopped early and judged unfinished positions with a simple score.' : ' Every game was played out to its end.';
+      html+=stepBox(2, "Look ahead",
+        '<div class="explain">It tried every move, then every reply, then every reply to that… It visited <b>'+view.nodes+'</b> positions in '+view.ms+' ms.'+note+'</div>');
+      html+=stepBox(3, "Best guaranteed result", '<div class="cand-grid">'+view.perMove.map(function(s){
         var cls="cand";
         if(s.m===view.chosen) cls+=" picked";
-        html+='<div class="'+cls+'"><span class="sq">'+s.m+'</span>'+valueChip(s.value)+'</div>';
-      });
-      html+='</div>';
-      if(!compact){
-        var note = view.cfg.depth<9 ? ' Some futures end before the game does, so they were judged by my evaluation function.' : ' Every future ended in a real win, draw or loss — no guessing.';
-        html+='<div class="brain-foot">I looked at <b>'+view.nodes+'</b> positions in '+view.ms+' ms.'+note+'</div>';
-      }
+        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+valueChip(s.value)+'</div>';
+      }).join("")+'</div>');
+      var bestV=view.perMove.filter(function(s){ return s.m===view.chosen; })[0].value;
+      var dec;
+      if(bestV===1000) dec='square <b>'+(view.chosen+1)+'</b> <b>wins</b> — it takes the win.';
+      else if(bestV===0) dec='square <b>'+(view.chosen+1)+'</b> guarantees at least a <b>draw</b> — it can never lose.';
+      else dec='every move loses against a perfect opponent — square <b>'+(view.chosen+1)+'</b> is the best it can do.';
+      html+='<div class="decision">Decision: '+dec+'</div>';
     }
     else if(view.type==="rl"){
       if(!view.seen){
-        html+='<p class="help" style="color:#fff;margin:0;">😅 <b>I have never seen this position before</b> — my table has no idea, so I\'m just guessing! Keep playing and watch me fall apart in new territory.</p>';
+        html+=stepBox(2, "Learned values",
+          '<div class="explain">This position is <b>not in its learned table</b> — it has never practiced it, so it can only guess.</div>');
+        html+='<div class="decision">Decision: no experience here — it picks a random square.</div>';
       } else {
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
-        html+='<div class="cand-grid">';
-        view.perMove.forEach(function(s){
+        html+=stepBox(2, "Learned values", '<div class="cand-grid">'+view.perMove.map(function(s){
           var cls="cand";
           if(s.q===topQ) cls+=" top";
           if(s.m===view.chosen) cls+=" picked";
-          html+='<div class="'+cls+'"><span class="sq">'+s.m+'</span>'+
-                '<span class="val">Q = '+s.q.toFixed(2)+'</span>'+
-                '<span class="sub">how good I believe this move is</span></div>';
-        });
-        html+='</div>';
-      }
-      if(!compact){
-        html+='<div class="brain-foot">I know <b>'+view.cfg.positions+'</b> positions.</div>';
-        html+='<div class="brain-foot">Learning curve (win rate vs Randomo while training):</div>';
+          return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+                 '<span class="val">value = '+s.q.toFixed(2)+'</span></div>';
+        }).join("")+'</div>');
+        html+=stepBox(3, "How it learned",
+          '<div class="explain">After every training game it updated the move it played:<br>'+
+          '<b>new value = old value + α × (reward − old value)</b><br>'+
+          'e.g. α = ½: 0 + ½ × (+1 − 0) = 0.5 after a win. Win = +1, draw = 0, loss = −1.</div>');
+        html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the highest learned value → play there.</div>';
+        html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
         html+=curveSvg(view.cfg.curve);
       }
     }
@@ -869,7 +843,7 @@
       brainHowBody=$("brainHowBody");
 
   var HOW = {
-    heuristics:"Every square is scored with a list of rules written by a human — each rule has points. The AI plays the square with the highest total. All of its smarts came from the person who wrote the rules. If no rule covers a situation, the AI knows nothing about it.",
+    heuristics:"The AI knows facts about the board — whose turn it is and which squares are taken — and a list of IF–THEN rules. Each rule gives points to the squares it likes, and the square with the most points is played. All of its knowledge came from the rules a human wrote.",
     probability:"The AI doesn't know any strategy at all. For each square it rolls dice: it imagines the rest of the game played out randomly, again and again, and counts wins, draws and losses. Its smarts come from statistics — and from whoever it imagined playing against.",
     search:"The AI imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
     rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
@@ -953,7 +927,7 @@
       if(c===O) btn.classList.add("o");
       if(wl && wl.indexOf(i)!==-1) btn.classList.add("win");
       if(c===EMPTY){
-        btn.innerHTML='<span class="idx">'+i+'</span>';
+        btn.innerHTML='<span class="idx">'+(i+1)+'</span>';
       } else {
         btn.textContent=c;
         btn.disabled=true;
@@ -992,16 +966,17 @@
     statusEl.textContent="The AI is thinking…";
     aiTimer=setTimeout(function(){
       if(!game || game.over || game.player!==game.brain) return;
+      var boardBefore=game.board.slice();
       var res=brainMove(game.brainKey, game.board, game.brain);
       doMove(res.move, res.view, game.brain);
-      if(res.view) showBrainView(res.view, game.brainKey);   // show reasoning even for a winning move
+      if(res.view) showBrainView(res.view, game.brainKey, boardBefore, game.brain);   // show reasoning even for a winning move
     }, 420);
   }
 
-  function showBrainView(view, key){
+  function showBrainView(view, key, boardBefore, player){
     var meta=ORDER.filter(function(o){ return o.key===key; })[0];
     brainLbl.textContent=meta.name+" just moved";
-    $("brainBody").innerHTML=renderBrainView(view, null, false);
+    $("brainBody").innerHTML=renderBrainView(view, boardBefore, player);
     brainVisible=true;
     brainPanel.classList.remove("hidden");
     brainReflect.innerHTML=REFLECT[key];
@@ -1036,181 +1011,6 @@
     selectedBrain=el.dataset.brain;
     renderBrainPicker();
     newGame(game?game.human:X);
-  });
-
-  /* ============================ COMPARE section ============================ */
-
-  var setupMini=$("setupMini"), cmpGrid=$("cmpGrid");
-  var setupBoard=new Array(9).fill(EMPTY), setupTurn=X;
-
-  function renderSetupMini(){
-    $("cmpNote").classList.add("hidden");
-    setupMini.innerHTML="";
-    for(var i=0;i<9;i++){
-      (function(i){
-        var b=document.createElement("button");
-        b.className="m";
-        var c=setupBoard[i];
-        if(c===X) b.classList.add("x");
-        if(c===O) b.classList.add("o");
-        b.textContent=c===EMPTY?"":c;
-        b.addEventListener("click", function(){
-          setupBoard[i] = setupBoard[i]===EMPTY?X:(setupBoard[i]===X?O:EMPTY);
-          renderSetupMini();
-        });
-        setupMini.appendChild(b);
-      })(i);
-    }
-  }
-
-  $("turnX").addEventListener("click", function(){
-    setupTurn=X; $("turnX").classList.add("active"); $("turnO").classList.remove("active");
-  });
-  $("turnO").addEventListener("click", function(){
-    setupTurn=O; $("turnO").classList.add("active"); $("turnX").classList.remove("active");
-  });
-  $("useGameBtn").addEventListener("click", function(){
-    if(!game) return;
-    setupBoard=game.board.slice();
-    setupTurn=game.over?opp(game.player):game.player;
-    $("turnX").classList.toggle("active", setupTurn===X);
-    $("turnO").classList.toggle("active", setupTurn===O);
-    renderSetupMini();
-  });
-
-  function compactViewHtml(view){
-    return renderBrainView(view, null, true);
-  }
-
-  $("compareBtn").addEventListener("click", function(){
-    if(isFull(setupBoard) || winner(setupBoard)){
-      $("cmpNote").textContent="The board is finished — clear a square first!";
-      $("cmpNote").classList.remove("hidden");
-      return;
-    }
-    $("cmpNote").classList.add("hidden");
-    cmpGrid.innerHTML="";
-    ORDER.forEach(function(o){
-      var card=document.createElement("div");
-      card.className="cmp-card";
-      if(!BRAINS[o.key]){
-        card.innerHTML='<div class="cmp-name">'+esc(o.name)+'</div>'+
-          '<div class="cmp-sub">Not built yet — run <b>'+esc(o.file)+'</b>, then reload this page.</div>';
-        cmpGrid.appendChild(card);
-        return;
-      }
-      var res=brainMove(o.key, setupBoard, setupTurn);
-      var miniHtml='<div class="mini">'+setupBoard.map(function(c,idx){
-        var cls="m";
-        if(c===X) cls+=" x"; if(c===O) cls+=" o";
-        if(idx===res.move) cls+=" win";
-        return '<span class="'+cls+'">'+(idx===res.move?(setupTurn):c)+'</span>';
-      }).join("")+'</div>';
-      card.innerHTML='<div class="cmp-head">'+miniHtml+
-        '<span class="cmp-name">'+esc(o.name)+'</span>'+
-        '<span class="cmp-move">plays square '+res.move+'</span></div>'+
-        '<div class="cmp-sub">'+esc(o.tag)+'</div>'+
-        '<div class="cand-grid">'+compactViewHtml(res.view)+'</div>';
-      cmpGrid.appendChild(card);
-    });
-    cmpGrid.scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"nearest"});
-  });
-
-  /* ============================ SCORECARD ============================ */
-
-  var LADDER=[["Randomo",function(b,p){ return randomMove(b); }],
-              ["Greedy", greedyMove],
-              ["Minimax", perfectMove]];
-
-  function brainPolicy(name){
-    return function(b,p){
-      var eff=effectiveBrain(name);
-      if(name==="heuristics") return heuristicBrain(b,p,eff.config).move;
-      if(name==="probability") return probabilityBrain(b,p,eff.config).move;
-      if(name==="search") return searchBrain(b,p,eff.config).move;
-      if(name==="rl") return rlBrain(b,p,{qtable:eff.qtable}).move;
-    };
-  }
-
-  $("scoreGames").addEventListener("input", function(){
-    $("scoreGamesVal").textContent=$("scoreGames").value;
-  });
-
-  $("runScoreBtn").addEventListener("click", function(){
-    var games=parseInt($("scoreGames").value,10);
-    var t0=performance.now();
-    var table=$("scoreTable");
-    var built=ORDER.filter(function(o){ return BRAINS[o.key]; });
-    if(!built.length){ table.innerHTML=""; return; }
-    var head="<tr><th>AI</th>"+LADDER.map(function(l){ return "<th>vs "+esc(l[0])+"</th>"; }).join("")+"</tr>";
-    var rows="";
-    built.forEach(function(o){
-      var cells="<td class='rowh'>"+esc(o.name)+"</td>";
-      LADDER.forEach(function(l){
-        var w=0,d=0,lo=0, s;
-        for(s=0;s<games;s++){
-          var outX=playGame(brainPolicy(o.key), l[1]);
-          if(outX===X) w++; else if(outX==="draw") d++; else lo++;
-          var outO=playGame(l[1], brainPolicy(o.key));
-          if(outO===O) w++; else if(outO==="draw") d++; else lo++;
-        }
-        cells+="<td><span class='chip w'>"+w+"</span> <span class='chip d'>"+d+"</span> <span class='chip l'>"+lo+"</span></td>";
-      });
-      rows+="<tr>"+cells+"</tr>";
-    });
-    var secs=((performance.now()-t0)/1000).toFixed(1);
-    table.innerHTML=head+rows;
-    $("scoreNote").textContent=games+" games per side per opponent · took "+secs+"s · win / draw / loss";
-  });
-
-  /* ============================ TOURNAMENT ============================ */
-
-  $("tourGames").addEventListener("input", function(){
-    $("tourGamesVal").textContent=$("tourGames").value;
-  });
-
-  $("runTourBtn").addEventListener("click", function(){
-    var games=parseInt($("tourGames").value,10);
-    var t0=performance.now();
-    var table=$("tourTable");
-    var built=ORDER.filter(function(o){ return BRAINS[o.key]; });
-    if(built.length<2){
-      table.innerHTML="";
-      $("champ").classList.add("hidden");
-      return;
-    }
-    var scores={};
-    built.forEach(function(o){ scores[o.key]={w:0,d:0,l:0}; });
-    var head="<tr><th>AI</th>"+built.map(function(o){ return "<th>vs "+esc(o.name)+"</th>"; }).join("")+"</tr>";
-    var rows="";
-    built.forEach(function(a){
-      var cells="<td class='rowh'>"+esc(a.name)+"</td>";
-      built.forEach(function(b2){
-        if(a.key===b2.key){ cells+="<td>—</td>"; return; }
-        var w=0,d=0,lo=0,s;
-        for(s=0;s<games;s++){
-          var outX=playGame(brainPolicy(a.key), brainPolicy(b2.key));
-          if(outX===X){ w++; scores[a.key].w++; scores[b2.key].l++; }
-          else if(outX==="draw"){ d++; scores[a.key].d++; scores[b2.key].d++; }
-          else { lo++; scores[a.key].l++; scores[b2.key].w++; }
-          var outO=playGame(brainPolicy(b2.key), brainPolicy(a.key));
-          if(outO===O){ w++; scores[a.key].w++; scores[b2.key].l++; }
-          else if(outO==="draw"){ d++; scores[a.key].d++; scores[b2.key].d++; }
-          else { lo++; scores[a.key].l++; scores[b2.key].w++; }
-        }
-        cells+="<td><span class='chip w'>"+w+"</span> <span class='chip d'>"+d+"</span> <span class='chip l'>"+lo+"</span></td>";
-      });
-      rows+="<tr>"+cells+"</tr>";
-    });
-    table.innerHTML=head+rows;
-    var sorted=built.slice().sort(function(a,b2){
-      var sa=scores[a.key], sb=scores[b2.key];
-      return (sb.w*2+sb.d)-(sa.w*2+sa.d);
-    });
-    var best=sorted[0];
-    $("champ").innerHTML="🏆 Champion: <b>"+esc(best.name)+"</b> — "+
-      scores[best.key].w+" wins, "+scores[best.key].d+" draws, "+scores[best.key].l+" losses";
-    $("champ").classList.remove("hidden");
   });
 
   /* ============================ MAKE section ============================ */
@@ -1579,7 +1379,7 @@
     if(!el) return;
     document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("active"); });
     el.classList.add("active");
-    ["play","compare","make","scorecard","tournament"].forEach(function(sec){
+    ["play","make"].forEach(function(sec){
       $("sec-"+sec).classList.toggle("hidden", sec!==el.dataset.sec);
     });
     // the brain panel only belongs on the Play tab (and only when fresh)
@@ -1593,7 +1393,6 @@
   }
 
   renderBrainPicker();
-  renderSetupMini();
   renderMakePicker();
   loadMakeEditor();
   newGame(X);
