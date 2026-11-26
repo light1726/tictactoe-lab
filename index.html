@@ -327,7 +327,7 @@
   .demo-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:6px 0;}
   .chip-v{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13px;font-weight:800;color:var(--ink);line-height:1.7;white-space:nowrap;}
   .vtable{display:inline-block;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:6px 10px;}
-  .vrow{display:grid;grid-template-columns:105px 105px 95px;gap:12px;font-size:13.5px;font-weight:700;color:#fff;}
+  .vrow{display:grid;grid-template-columns:74px 100px 100px 95px;gap:12px;font-size:13.5px;font-weight:700;color:#fff;align-items:center;}
   .vrow.vhead{color:var(--sun);font-weight:800;margin-bottom:3px;}
   .vrow.vdots{color:rgba(255,255,255,.6);}
   .demo-arrow{color:rgba(255,255,255,.7);font-weight:800;font-size:17px;}
@@ -887,6 +887,27 @@
       '<span class="fact">Empty: '+(em.length?em.join(", "):"—")+'</span>'+
     '</div>';
   }
+  function miniBoardHtml(board, hl){
+    var inner="";
+    for(var ci=0;ci<9;ci++){
+      var c=board[ci];
+      var cls="mini-cell";
+      if(c===X) cls+=" x";
+      if(c===O) cls+=" o";
+      if(hl===ci) cls+=" mine";
+      inner+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+    }
+    return '<span class="mini-board">'+inner+'</span>';
+  }
+  function vtableHtml(rows){
+    var h='<div class="vtable"><div class="vrow vhead"><span>board</span><span>state</span><span>move</span><span>value</span></div>';
+    rows.forEach(function(r){
+      h+='<div class="vrow"><span>'+r.board+'</span><span>'+r.pos+'</span><span>'+r.move+'</span><span>'+r.val+'</span></div>';
+    });
+    h+='<div class="vrow vdots"><span>⋯</span></div></div>';
+    return h;
+  }
+
   function rlDemoHtml(cfg){
     var qtable=cfg.qtable||{}, lr=cfg.config.learning_rate;
     var R=cfg.config.rewards, disc=cfg.config.discount;
@@ -907,35 +928,29 @@
     }
     function buildSteps(seq, resWord, reward){
       var cells=seq.map(function(st){
-        var inner="";
-        for(var ci=0;ci<9;ci++){
-          var c=st.board[ci];
-          var cls="mini-cell";
-          if(c===X) cls+=" x";
-          if(c===O) cls+=" o";
-          if(ci===st.m) cls+=" mine";
-          inner+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
-        }
-        return '<span class="mini-board">'+inner+'</span>';
+        return miniBoardHtml(st.board, st.m);
       }).join('<span class="demo-arrow">→</span>');
-      var initChips="";
-      for(var sq=1;sq<=9;sq++) initChips+='<span class="chip-v">square '+sq+': 0</span>';
-      var rowsHtml="";
+      var empty=new Array(9).fill(EMPTY);
+      var initRows=[
+        {board:miniBoardHtml(empty), pos:"position 1", move:"square 1", val:"0"},
+        {board:miniBoardHtml(empty), pos:"position 1", move:"square 3", val:"0"}
+      ];
+      var updRows=[];
       for(var ri=0;ri<2 && ri<seq.length;ri++){
+        var before = ri===0 ? empty : seq[ri-1].board;
         var upd=Math.round(lr*Math.pow(disc, seq.length-1-ri)*reward*10)/10;
-        rowsHtml+='<div class="vrow"><span>position '+(ri+1)+'</span><span>square '+(seq[ri].m+1)+'</span><span>0 → '+(upd>0?"+":"")+upd+'</span></div>';
+        updRows.push({board:miniBoardHtml(before), pos:"position "+(ri+1), move:"square "+(seq[ri].m+1), val:"0 → "+(upd>0?"+":"")+upd});
       }
-      rowsHtml+='<div class="vrow vdots"><span>⋯</span></div>';
       return stepBox(1, "Initialize the value table",
                '<div class="explain">Every (state, move) starts at 0.</div>'+
-               '<div class="demo-row">'+initChips+'</div>')+
+               vtableHtml(initRows))+
              stepBox(2, "Play games and collect rewards",
-               '<div class="explain">It plays games to the end — here the AI is O against a practice partner.</div>'+
+               '<div class="explain">It plays games to the end — here the AI is O against a practice partner. It mostly plays its best known moves, sometimes trying random ones.</div>'+
                '<div class="demo-row">'+cells+'</div>'+
                '<div class="route-result '+resWord+'">result: '+resWord+' → reward '+(reward>0?"+":"")+reward+'</div>')+
              stepBox(3, "Update the value table",
                '<div class="explain"><b>new value = old + α × (reward − old)</b> — applied to every move of that game:</div>'+
-               '<div class="vtable"><div class="vrow vhead"><span>state</span><span>move</span><span>value</span></div>'+rowsHtml+'</div>');
+               vtableHtml(updRows));
     }
     var tries=0, seq=null;
     while(tries++<10){
