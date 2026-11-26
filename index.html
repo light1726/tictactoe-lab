@@ -135,6 +135,9 @@
   .pick.active{background:var(--grape);color:#fff;border-color:var(--grape-deep);}
 
   /* ---------- The board ---------- */
+  .play-layout{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:2px;}
+  .play-avatar{width:112px;height:112px;border-radius:50%;border:4px solid var(--ink);background:#fff;box-shadow:0 6px 0 var(--shadow);flex:0 0 auto;overflow:hidden;}
+  .play-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
   .board{
     display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
     max-width:320px;margin:0 auto;
@@ -369,7 +372,10 @@
       <button class="btn btn--ghost" id="undoBtn">Undo</button>
     </div>
 
-    <div class="board" id="board"></div>
+    <div class="play-layout">
+      <div class="play-avatar" id="playAvatar"></div>
+      <div class="board" id="board"></div>
+    </div>
     <div class="status" id="status">Your turn!</div>
   </section>
 
@@ -921,16 +927,22 @@
     return el?el.dataset.brain:"heuristics";
   }
 
-  function avatarHtml(key){
+  function avatarHtml(key, cls){
     var meta=ORDER.filter(function(o){ return o.key===key; })[0];
     var name = meta ? meta.name.toLowerCase() : key;   // "heuristics" -> "logic.png"
-    return '<img class="avatar" src="avatars/'+name+'.png" alt="" onerror="this.remove()">';
+    return '<img class="'+(cls||"avatar")+'" src="avatars/'+name+'.png" alt="" onerror="this.remove()">';
   }
 
   var selectedBrain=null;
 
   function activeBrain(){
     return selectedBrain;
+  }
+
+  function updatePlayAvatar(){
+    var el=$("playAvatar");
+    if(!el) return;
+    el.innerHTML=avatarHtml(activeBrain()||selectedBrain);
   }
 
   function renderBrainPicker(){
@@ -948,6 +960,7 @@
       if(!BRAINS[o.key]) btn.disabled=true;
       brainPicker.appendChild(btn);
     });
+    updatePlayAvatar();
   }
 
   function setSide(side){
