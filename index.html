@@ -753,18 +753,26 @@
       var v=-negamax(child, opp(p), cfg.depth-1, -1e9, 1e9, cfg);
       var entry={m:lm[i], value:v, replies:null, poss:null, lowest:null};
       if(cfg.depth===9){
-        // full-depth minimax walk-through: for each reply of the opponent,
-        // what is my outcome? (values are +1 win / 0 draw / -1 loss)
-        var rs=legalMoves(child), replies=[], poss={}, lowest=null, k;
-        for(k=0;k<rs.length;k++){
-          var rv=perfectValue(play(child,rs[k],opp(p)), p);
-          replies.push({r:rs[k], v:rv});
-          poss[rv]=true;
-          if(lowest===null || rv<lowest) lowest=rv;
+        var wch=winner(child);
+        if(wch===p){
+          // this move finishes the game: I win right here
+          entry.replies=[]; entry.poss=[1]; entry.lowest=1;
+        } else if(isFull(child)){
+          entry.replies=[]; entry.poss=[0]; entry.lowest=0;
+        } else {
+          // full-depth minimax walk-through: for each reply of the opponent,
+          // what is my outcome? (values are +1 win / 0 draw / -1 loss)
+          var rs=legalMoves(child), replies=[], poss={}, lowest=null, k;
+          for(k=0;k<rs.length;k++){
+            var rv=perfectValue(play(child,rs[k],opp(p)), p);
+            replies.push({r:rs[k], v:rv});
+            poss[rv]=true;
+            if(lowest===null || rv<lowest) lowest=rv;
+          }
+          entry.replies=replies;
+          entry.poss=Object.keys(poss).map(Number).sort(function(a,b){ return b-a; });   // win, draw, loss
+          entry.lowest=lowest;
         }
-        entry.replies=replies;
-        entry.poss=Object.keys(poss).map(Number).sort(function(a,b){ return b-a; });   // win, draw, loss
-        entry.lowest=lowest;
       }
       perMove.push(entry);
       if(best===null || v>best){ best=v; move=lm[i]; }
@@ -857,6 +865,7 @@
   }
   function renderBrainView(view, b, p){
     var html="";
+    var winNow = winner(play(b, view.chosen, p))===p;
     html+=stepBox(1, "The current states", factsHtml(b, p));
     if(view.type==="heuristics"){
       function logicRuleRow(raw, idx){
@@ -880,7 +889,7 @@
       } else {
         html+=stepBox(3, "The first rule that applies", '<div class="explain">No rule applies — it falls back to the first empty square.</div>');
       }
-      html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
+      html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
     }
     else if(view.type==="probability"){
       var nSim=view.cfg.simulations;
@@ -895,13 +904,13 @@
       }).join("");
       html+=stepBox(2, "Each move — its chances",
         '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
-      html+=stepBox(3, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b></div>');
+      html+=stepBox(3, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
     }
     else if(view.type==="search"){
       if(view.slipped){
         html+=stepBox(2, "A slip",
           '<div class="explain">Its caution is <b>'+view.cfg.caution+'%</b> — this time it slipped and played a <b>random square</b> instead of its best move.</div>');
-        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b> <span style="font-weight:600;color:#5b5470;">(best would have been square '+(view.best+1)+')</span></div>');
+        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+' <span style="font-weight:600;color:#5b5470;">(best would have been square '+(view.best+1)+')</span></div>');
       }
       else if(view.cfg.depth===9){
         var foe=opp(p);
@@ -918,6 +927,22 @@
                  || view.perMove.filter(function(s){ return s.m!==view.chosen; })[0];
         function boardsHtml(mv){
           var afterMy=play(b, mv.m, p);
+          if(!mv.replies.length){
+            var endWord = winner(afterMy)===p ? "win" : "draw";
+            var cellsE="";
+            for(var ce=0;ce<9;ce++){
+              var cev=afterMy[ce];
+              var clsE="mini-cell";
+              if(cev===X) clsE+=" x";
+              if(cev===O) clsE+=" o";
+              if(ce===mv.m) clsE+=" mine";
+              cellsE+='<span class="'+clsE+'">'+(cev===EMPTY?"":cev)+'</span>';
+            }
+            return '<div class="reply-grid"><div class="reply-card worst">'+
+                   '<div class="mini-board">'+cellsE+'</div>'+
+                   '<div class="route-result '+endWord+'">the game ends here: '+endWord+'</div>'+
+                   '</div></div>';
+          }
           return '<div class="reply-grid">'+mv.replies.map(function(rp){
             var worst = rp.v===mv.lowest;
             var board=play(afterMy, rp.r, foe);
@@ -952,10 +977,9 @@
                  outcomeChip(s.lowest)+'</div>';
         }).join("");
         html+=stepBox(3, "Each move and the worst final result",
-          '<div class="explain">'+foe+' always picks the reply that hurts me the most — here are all my moves side by side.</div>'+
           '<div class="cand-grid">'+rows+'</div>');
         html+=stepBox(4, "Choose the best worst case",
-          '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
+          '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
       } else {
         var rows=view.perMove.map(function(s){
           var cls="cand";
@@ -968,7 +992,7 @@
         html+=stepBox(2, "Each move — its score",
           '<div class="explain">looking only '+view.cfg.depth+' move(s) ahead, unfinished positions get a simple score · '+view.nodes+' positions checked</div>'+
           '<div class="cand-grid">'+rows+'</div>');
-        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b> — the best score</div>');
+        html+=stepBox(3, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':' — the best score')+'</div>');
       }
     }
     else if(view.type==="rl"){
@@ -977,7 +1001,7 @@
           '<div class="explain">This position is not in its learned table — it has never practiced it.</div>');
         var unseenLead = view.reflex ? "A reflex applied — the only thing it knows here." : "Neither reflex applies, so it can only guess.";
         html+=stepBox(3, "Reflexes first, then the highest value", '<div class="explain">'+unseenLead+'</div>');
-        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
+        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
       } else if(view.perMove){
 
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
@@ -1005,7 +1029,7 @@
           ? (view.reflex==="win" ? "A reflex applied first — it took the win." : "A reflex applied first — it blocked your immediate threat.")
           : "No win to take and no threat to block — so it takes the move with the highest learned value.";
         html+=stepBox(3, "Reflexes first, then the highest value", '<div class="explain">'+rlLead+'</div>');
-        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
+        html+=stepBox(4, "Output", '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
         html+='<div class="brain-foot">It knows <b>'+view.cfg.positions+'</b> positions. Values keep changing as it plays more:</div>';
         html+=curveSvg(view.cfg.curve);
       }
