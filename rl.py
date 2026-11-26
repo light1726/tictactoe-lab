@@ -26,7 +26,7 @@ Ideas to try
 ------------
   * exploration = 0.0 -> the brain never experiments. Does it get stuck
     on its first idea? (Try it early: episodes = 2000.)
-  * rewards: draw = 0.5 -> winning and drawing look similar... lazy brain?
+  * rewards: draw = 8 -> winning and drawing look similar... lazy brain?
   * train_against = "greedy" -> learn to beat a smarter opponent.
   * train_against = "minimax" -> train against a PERFECT player. Then
     check the scorecard: the brain draws Minimax but may lose to Randomo!
@@ -68,7 +68,7 @@ CONFIG = {
     "exploration": 0.5,
 
     # What the game result is worth.
-    "rewards": {"win": +1, "draw": 0, "loss": -1},
+    "rewards": {"win": +10, "draw": 0, "loss": -10},
 
     # Who the brain trains against:
     # "random" | "greedy" | "self" | "minimax" | "mix"

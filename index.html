@@ -419,10 +419,10 @@
 </div>
 
 <!-- bump ?v= whenever the brains are regenerated (cache-busting) -->
-<script src="brains/heuristics.js?v=3"></script>
-<script src="brains/probability.js?v=3"></script>
-<script src="brains/search.js?v=3"></script>
-<script src="brains/rl.js?v=3"></script>
+<script src="brains/heuristics.js?v=4"></script>
+<script src="brains/probability.js?v=4"></script>
+<script src="brains/search.js?v=4"></script>
+<script src="brains/rl.js?v=4"></script>
 
 <script>
 (function(){
@@ -908,9 +908,9 @@
       } else {
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
         function rlDisp(q){
-          // reward win +1 / draw 0 / loss -1  ->  friendly 0-100 scale:
+          // rewards are win +10 / draw 0 / loss -10  ->  friendly 0-100 scale:
           // 0 = a loss, 50 = a draw, 100 = a win
-          var d=Math.round((q+1)*50);
+          var d=Math.round((q+10)*5);
           if(d<0) d=0;
           if(d>100) d=100;
           return d;
