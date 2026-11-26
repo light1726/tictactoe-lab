@@ -171,7 +171,7 @@
   .cand{
     font-family:"DM Mono",monospace;font-size:15px;
     background:#fff;border:2px solid var(--line);border-radius:9px;
-    padding:9px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:9px 10px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;
   }
   .cand .sq{
     font-family:"Fredoka",sans-serif;font-weight:700;font-size:19px;
@@ -328,11 +328,16 @@
   .res.win{color:var(--teal-deep);} .res.draw{color:var(--sun-deep);} .res.lose{color:var(--bad);}
   .cand.picked .res, .cand.picked .res .w, .cand.picked .res .d, .cand.picked .res .l{color:#fff;}
 
-  .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
-  .kw{display:inline-block;background:var(--grape);color:#fff;border:2px solid var(--ink);border-radius:6px;padding:0 6px;font-size:12.5px;font-weight:800;line-height:1.5;}
+  .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 6px;font-size:11px;font-weight:800;margin-left:4px;white-space:nowrap;}
+  .kw{display:inline-block;background:var(--grape);color:#fff;border:2px solid var(--ink);border-radius:6px;padding:0 3px;font-size:10.5px;font-weight:800;line-height:1.5;white-space:nowrap;}
   .kw.then{background:var(--teal);}
-  .chip-c{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:8px;padding:0 8px;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.6;}
-  .chip-m{display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13.5px;font-weight:800;color:var(--ink);line-height:1.6;}
+  .chip-c{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:8px;padding:0 6px;font-size:12px;font-weight:700;color:var(--ink);line-height:1.7;white-space:nowrap;}
+  .cond-slot{display:inline-block;width:164px;text-align:left;vertical-align:middle;}
+  .chip-c.none{background:transparent;border-style:dashed;color:rgba(255,255,255,.55);}
+  .cand.picked .chip-c.none{color:rgba(255,255,255,.7);}
+  .chip-m{display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:8px;padding:0 6px;font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.6;white-space:nowrap;}
+  .chip-m-sub{font-size:11px;font-weight:700;opacity:.75;}
+  .cand.picked .chip-m-sub{color:#fff;opacity:.9;}
   .cand.picked .kw{border-color:#fff;}
   .cand.picked .chip-c{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;}
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
@@ -341,7 +346,7 @@
   .cfg-rule .mini-btn{padding:2px 7px;font-size:12px;flex:0 0 auto;}
   .cfg-rule .rule-order{min-width:16px;font-size:13px;flex:0 0 auto;}
 
-  .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;}
+  .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;white-space:nowrap;}
   .cand.picked .rule-name{color:#fff;}
   .res.no{color:#b3aacb;} .res.go{color:var(--grape-deep);}
   .cand.picked .res.go, .cand.picked .res.no{color:rgba(255,255,255,.85);}
@@ -852,14 +857,14 @@
         var cands=ruleCandidates(b,p,r);
         var cls="cand";
         if(idx===view.matchedIndex) cls+=" picked";
-        var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓</span>' : '';
-        var body = !cands.length ? '<span class="res no">—</span>'
-                 : '<span class="res go">squares '+cands.map(function(m){ return m+1; }).join(", ")+'</span>';
-        var txt='<span class="kw">IF</span> <span class="chip-c">'+esc(r.c1)+'</span>'+
-                (r.c2?' <span class="kw">AND</span> <span class="chip-c">'+esc(r.c2)+'</span>':'')+
-                ' <span class="kw then">THEN</span> <span class="chip-m">'+esc(r.m)+'</span>';
+        var tick = (idx===view.matchedIndex) ? '<span class="step-tick">✓</span>' : '';
+        var sub = cands.length ? cands.map(function(m){ return m+1; }).join(", ") : "—";
+        var txt='<span class="kw">IF</span><span class="cond-slot"><span class="chip-c">'+esc(r.c1)+'</span></span>'+
+                '<span class="kw">AND</span><span class="cond-slot">'+
+                (r.c2?'<span class="chip-c">'+esc(r.c2)+'</span>':'<span class="chip-c none">—</span>')+'</span>'+
+                '<span class="kw then">THEN</span><span class="chip-m">'+esc(r.m)+' <span class="chip-m-sub">· '+sub+'</span></span>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
-               '<span class="rule-name">'+txt+'</span>'+body+tick+'</div>';
+               '<span class="rule-name">'+txt+'</span>'+tick+'</div>';
       }).join("");
       html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
