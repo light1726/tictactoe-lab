@@ -916,12 +916,13 @@
           }
           return '<div class="reply-card'+(worst?" worst":"")+'">'+
                  '<div class="mini-board">'+cells+'</div>'+
-                 '<div class="reply-label">'+foe+' plays '+(rp.r+1)+' → <b>I will '+verbWord(rp.v)+'</b>'+
-                 (worst?' <span class="step-tick">✗ hurts me most</span>':'')+'</div>'+
                  '</div>';
         }).join("");
-        html+=stepBox(3, foe+"'s replies to my square "+(view.chosen+1),
-          '<div class="explain">I must assume '+foe+' takes the reply that hurts me most — the “min” in minimax.</div>'+
+        var assured = ch.lowest===1 ? "even "+foe+"'s best reply still loses — I force a win"
+                    : (ch.lowest===0 ? "even "+foe+"'s best reply only draws — I can never lose"
+                    : "and "+foe+"'s best reply forces a loss on me");
+        html+=stepBox(3, foe+"'s possible replies to my square "+(view.chosen+1),
+          '<div class="explain">'+foe+' will take the reply that hurts me most (the “min” in minimax) — '+assured+'.</div>'+
           '<div class="reply-grid">'+replyBoards+'</div>');
         var dec;
         if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses → <b>play square '+(view.chosen+1)+'</b> — I force a win';
