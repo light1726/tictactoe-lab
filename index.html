@@ -194,12 +194,6 @@
   .bars .b.l{background:#e8b7b7;}
 
   .brain-foot{font-size:13px;font-weight:700;color:#fff;margin-top:12px;opacity:.95;}
-  .ponder{
-    margin-top:12px;font-size:14px;font-weight:700;color:#5b5470;
-    background:var(--grape-pale);border-radius:10px;padding:10px 13px;
-  }
-  .ponder b{color:var(--grape-deep);}
-
   /* decision log / explainer */
   details.log{margin:14px auto 0;max-width:100%;}
   details.log summary{
@@ -380,7 +374,6 @@
     <h2 class="stage-head" id="bp"><span class="stage-num" style="background:var(--sun);">🧠</span>What the AI was thinking</h2>
     <span class="brain-lbl" id="brainLbl">…</span>
     <div id="brainBody"></div>
-    <div class="ponder hidden" id="brainReflect"></div>
     <details class="log" id="brainHow">
       <summary>How does this AI work?</summary>
       <div class="log-body" id="brainHowBody"></div>
@@ -884,7 +877,7 @@
   /* ============================ PLAY section ============================ */
 
   var brainPicker=$("brainPicker"), boardEl=$("board"), statusEl=$("status"),
-      brainPanel=$("brainPanel"), brainLbl=$("brainLbl"), brainReflect=$("brainReflect"),
+      brainPanel=$("brainPanel"), brainLbl=$("brainLbl"),
       brainHowBody=$("brainHowBody");
 
   var HOW = {
@@ -893,13 +886,6 @@
     search:"The AI imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
     rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
   };
-  var REFLECT = {
-    heuristics:"🤔 <b>Think:</b> Where did this AI's knowledge come from? What happens in a situation that no rule covers? (Try removing the “block their line” rule — or moving “take the center” above it — and see what breaks.)",
-    probability:"🤔 <b>Think:</b> This AI judges moves by games against a random opponent. What would happen if its imagined opponent were smarter?",
-    search:"🤔 <b>Think:</b> Why can the search AI never lose? And why does it never try to trick you, even when it could win faster? (Try depth 1 and see what it turns into.)",
-    rl:"🤔 <b>Think:</b> The RL AI learned from the games it played. What if it had practiced only against a perfect player — would it still beat Randomo?"
-  };
-
   var game=null, aiTimer=null, brainVisible=false;
 
   function newGame(humanSide){
@@ -1024,8 +1010,6 @@
     $("brainBody").innerHTML=renderBrainView(view, boardBefore, player);
     brainVisible=true;
     brainPanel.classList.remove("hidden");
-    brainReflect.innerHTML=REFLECT[key];
-    brainReflect.classList.remove("hidden");
     brainHowBody.textContent=HOW[key];
     brainPanel.scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"nearest"});
   }
