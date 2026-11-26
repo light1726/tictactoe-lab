@@ -6,7 +6,7 @@ and see where their "cleverness" comes from.
 
 | Brain | File | Where its knowledge comes from |
 |---|---|---|
-| Heuristics | `heuristics.py` | **Rules a human wrote** — every square gets points from your rules |
+| Logic | `heuristics.py` | **Facts and IF–THEN rules a human wrote** — every square gets points from your rules |
 | Probability | `probability.py` | **Statistics** — it rolls dice, imagines random games, counts outcomes |
 | Search | `search.py` | **Looking ahead** — it plays out every possible future |
 | RL | `rl.py` | **Experience** — it starts blank and learns from thousands of games |
@@ -40,25 +40,20 @@ One game, four different sources of knowledge. The lab is built around the quest
 
 ## The playground
 
-- **Play** — pick a brain, play as X or O. After every brain move, the purple
-  panel shows *exactly why* it chose that square.
-- **Compare** — set up any position and ask all four brains: "what would you
-  play here?" Side by side, the four ways of thinking become visible.
-- **Make** — keep it simple. Each AI exposes just its core idea:
-  Heuristics lets you edit the rule list (points, add / remove / reorder);
-  Probability has one knob, the simulated games per move; Search has one knob,
-  the look-ahead depth; RL has training games, learning rate and a
-  **Train now!** button that trains it live in the browser and draws its
-  learning curve. **Apply** makes every tab use your version (marked ✏️);
-  **Reset to default** brings the original back.
-- **Scorecard** — every brain plays the same three test opponents:
-  **Randomo** (plays randomly), **Greedy** (wins/blocks, takes center, corners, edges)
-  and **Minimax** (a perfect player — it can never lose).
-- **Tournament** — the brains face each other, round-robin. Who wins the crown?
+- **Play** — pick an AI (Logic, Probability, Search or RL), play as X or O.
+  After every AI move, the purple panel walks through its thinking **step by
+  step**, in the same four-step shape as the course slides: the facts → how it
+  reasoned → the scores/values → the decision.
+- **Make** — keep it simple. Logic lets you edit the rule list (points, add /
+  remove / reorder). Probability has one knob, the simulated games per move;
+  Search has one knob, the look-ahead depth; RL has training games, learning
+  rate and a **Train now!** button that trains it live in the browser and
+  draws its learning curve. **Apply** makes the Play tab use your version
+  (marked ✏️); **Reset to default** brings the original back.
 
 ## PLAY → THINK → MAKE → REFLECT
 
-### Heuristics (`heuristics.py`)
+### Logic (`heuristics.py`)
 
 - **PLAY** a game or two against it. It never loses — annoying, right?
 - **THINK** the purple panel shows each rule voting points for each square.
