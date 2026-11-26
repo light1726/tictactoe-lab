@@ -360,13 +360,14 @@
   .mini-cell{width:23px;height:23px;border:2px solid var(--ink);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;font-family:"DM Mono",monospace;font-weight:500;font-size:13px;color:var(--ink);}
   .mini-cell.x{color:var(--grape-deep);}
   .mini-cell.o{color:var(--sun-deep);}
-  .mini-cell.reply{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
+  .mini-cell.mine{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
+  .mini-cell.reply{border:2px dashed var(--sun-deep);}
+  .route-dots{color:rgba(255,255,255,.65);font-size:15px;line-height:0.7;letter-spacing:1px;margin-top:2px;}
+  .route-result{font-size:13px;font-weight:800;}
+  .route-result.win{color:#7EF0E4;}
+  .route-result.draw{color:var(--sun);}
+  .route-result.loss{color:#F4C4C4;}
   .reply-label{font-size:13.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}
-  .res-chips{display:flex;gap:5px;}
-  .rchip{font-size:12.5px;font-weight:800;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:1px 9px;color:rgba(255,255,255,.45);background:rgba(255,255,255,.08);}
-  .rchip.on.win{background:var(--teal);color:#fff;border-color:var(--ink);}
-  .rchip.on.draw{background:var(--sun);color:var(--ink);border-color:var(--ink);}
-  .rchip.on.loss{background:#f2c9c9;color:var(--bad);border-color:var(--ink);}
 
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
@@ -851,7 +852,7 @@
   }
   function renderBrainView(view, b, p){
     var html="";
-    html+=stepBox(1, "The facts", factsHtml(b, p));
+    html+=stepBox(1, "The current states", factsHtml(b, p));
     if(view.type==="heuristics"){
       function logicRuleRow(raw, idx){
         var r=normalizeRule(raw);
@@ -921,17 +922,15 @@
               var cls="mini-cell";
               if(c===X) cls+=" x";
               if(c===O) cls+=" o";
+              if(ci===mv.m) cls+=" mine";
               if(ci===rp.r) cls+=" reply";
               cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
             }
             var vcls = rp.v===1 ? "win" : (rp.v===0 ? "draw" : "loss");
             return '<div class="reply-card'+(worst?" worst":"")+'">'+
                    '<div class="mini-board">'+cells+'</div>'+
-                   '<div class="res-chips">'+
-                   '  <span class="rchip win'+(vcls==="win"?" on":"")+'">win</span>'+
-                   '  <span class="rchip draw'+(vcls==="draw"?" on":"")+'">draw</span>'+
-                   '  <span class="rchip loss'+(vcls==="loss"?" on":"")+'">loss</span>'+
-                   '</div>'+
+                   '<div class="route-dots">⋮</div>'+
+                   '<div class="route-result '+vcls+'">worst along this route: '+vcls+'</div>'+
                    '</div>';
           }).join("")+'</div>';
         }
@@ -941,7 +940,8 @@
         var rivalLine = rival.lowest>ch.lowest
           ? foe+"'s best reply here forces a loss on me — that is why square "+(rival.m+1)+" is worse."
           : foe+"'s best reply here gives the same result — so square "+(rival.m+1)+" is just as safe.";
-        html+=stepBox(2, "The sub-graphs: my best move vs a worse move",
+        html+=stepBox(2, "Imagination: my move and the opponent's replies",
+          '<div class="explain">My move is highlighted · the opponent\'s reply has a dotted border · every route is searched to the very end of the game.</div>'+
           '<div class="subhead">My best move: square '+(view.chosen+1)+'</div>'+boardsHtml(ch)+
           '<div class="explain">'+foe+' will take the reply that hurts me most (the “min” in minimax) — '+assured+'.</div>'+
           '<div class="subhead">A worse move: square '+(rival.m+1)+'</div>'+boardsHtml(rival)+
