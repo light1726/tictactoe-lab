@@ -366,7 +366,7 @@
   .mini-cell.x{color:var(--grape-deep);}
   .mini-cell.o{color:var(--sun-deep);}
   .mini-cell.mine{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
-  .mini-cell.reply{border:2px dashed var(--bad);}
+  .mini-cell.reply{border:2px solid var(--bad);}
   .route-dots{color:rgba(255,255,255,.65);font-size:15px;line-height:0.7;letter-spacing:1px;margin-top:2px;}
   .route-result{font-size:13px;font-weight:800;}
   .route-result.win{color:#7EF0E4;}
@@ -939,19 +939,11 @@
                    '</div>';
           }).join("")+'</div>';
         }
-        var assured = ch.lowest===1 ? "even "+foe+"'s best reply still loses — I force a win"
-                    : (ch.lowest===0 ? "even "+foe+"'s best reply only draws — I can never lose"
-                    : "and "+foe+"'s best reply forces a loss on me");
-        var rivalLine = rival.lowest>ch.lowest
-          ? foe+"'s best reply here forces a loss on me — that is why square "+(rival.m+1)+" is worse."
-          : foe+"'s best reply here gives the same result — so square "+(rival.m+1)+" is just as safe.";
         html+=stepBox(2, "Imagination: my move and the opponent's replies",
-          '<div class="explain">My move is highlighted · the opponent\'s reply has a red dotted border · every route is searched to the very end of the game.</div>'+
-          '<div class="subhead">Possible move #1: the worst result is <span class="res-tag '+(ch.lowest===1?"win":(ch.lowest===0?"draw":"loss"))+'">'+valWord(ch.lowest)+'</span></div>'+boardsHtml(ch)+
-          '<div class="explain">'+foe+' will take the reply that hurts me most (the “min” in minimax) — '+assured+'.</div>'+
-          '<div class="subhead">Possible move #2: the worst result is <span class="res-tag '+(rival.lowest===1?"win":(rival.lowest===0?"draw":"loss"))+'">'+valWord(rival.lowest)+'</span></div>'+boardsHtml(rival)+
-          '<div class="explain">'+rivalLine+'</div>'+
-          '<div class="more-moves">Possible move #3 … and so on, for every empty square.</div>');
+          '<div class="explain">My move is highlighted · the opponent\'s reply has a red border · every route is searched to the very end of the game.</div>'+
+          '<div class="subhead">Possible move: square '+(view.chosen+1)+' — the worst result is <span class="res-tag '+(ch.lowest===1?"win":(ch.lowest===0?"draw":"loss"))+'">'+valWord(ch.lowest)+'</span></div>'+boardsHtml(ch)+
+          '<div class="subhead">Possible move: square '+(rival.m+1)+' — the worst result is <span class="res-tag '+(rival.lowest===1?"win":(rival.lowest===0?"draw":"loss"))+'">'+valWord(rival.lowest)+'</span></div>'+boardsHtml(rival)+
+          '<div class="more-moves">Other possible moves … and so on, for every empty square.</div>');
         var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.m===view.chosen) cls+=" picked";
@@ -962,12 +954,7 @@
         html+=stepBox(3, "Each move and the worst final result",
           '<div class="explain">'+foe+' always picks the reply that hurts me the most — here are all my moves side by side.</div>'+
           '<div class="cand-grid">'+rows+'</div>');
-        var dec;
-        if(ch.lowest===1) dec='Even '+foe+'\'s most hurtful reply still loses — I force a win.';
-        else if(ch.lowest===0) dec=foe+'\'s most hurtful reply only draws — I never lose.';
-        else dec='Every move lets '+foe+' force a win on me — this move is the least bad.';
         html+=stepBox(4, "Choose the best worst case",
-          '<div class="explain">'+dec+'</div>'+
           '<div class="output-box">Play square <b>'+(view.chosen+1)+'</b></div>');
       } else {
         var rows=view.perMove.map(function(s){
