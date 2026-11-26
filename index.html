@@ -318,6 +318,12 @@
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
   .rule-order{font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:var(--grape-deep);min-width:20px;text-align:right;}
 
+  .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;}
+  .cand.picked .rule-name{color:#fff;}
+  .res.no{color:#b3aacb;} .res.go{color:var(--grape-deep);}
+  .cand.picked .res.go, .cand.picked .res.no{color:rgba(255,255,255,.85);}
+  .cand.picked .step-tick{background:var(--sun);color:var(--ink);}
+
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
     .stage{padding:20px 15px;}
@@ -708,15 +714,17 @@
     var html="";
     html+=stepBox(1, "The facts", factsHtml(b, p));
     if(view.type==="heuristics"){
-      var ruleLines=view.cfg.rules.map(function(action, idx){
+      var ruleRows=view.cfg.rules.map(function(action, idx){
         var ms=ruleMoves(b,p,action);
+        var cls="cand";
+        if(idx===view.matchedIndex) cls+=" picked";
         var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓</span>' : '';
-        var cls = (idx===view.matchedIndex) ? "explain dec" : "explain";
-        if(!ms.length) return '<div class="'+cls+'">'+(idx+1)+'. '+esc(action)+' — no'+tick+'</div>';
-        return '<div class="'+cls+'">'+(idx+1)+'. <b>'+esc(action)+'</b> → squares '+
-          ms.map(function(m){ return m+1; }).join(", ")+tick+'</div>';
+        var body = !ms.length ? '<span class="res no">—</span>'
+                 : '<span class="res go">squares '+ms.map(function(m){ return m+1; }).join(", ")+'</span>';
+        return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
+               '<span class="rule-name">'+esc(action)+'</span>'+body+tick+'</div>';
       }).join("");
-      html+=stepBox(2, "Check the rules in order", ruleLines);
+      html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
         var action=view.cfg.rules[view.matchedIndex];
         html+='<div class="decision">“'+esc(action)+'” applies first → <b>play square '+(view.chosen+1)+'</b></div>';
