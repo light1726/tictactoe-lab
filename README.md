@@ -46,7 +46,9 @@ One game, four different sources of knowledge. The lab is built around the quest
   reasoned → the scores/values → the decision.
 - **Make** — keep it simple. Logic lets you edit the rule list (reorder, add /
   remove). Probability has one knob, the simulated games per move;
-  Search has one knob, the look-ahead depth; RL has training games, learning
+  Search has the look-ahead depth and a **caution** slider (100% = never slips;
+  lower = it sometimes plays a random square and becomes beatable); RL has
+  training games, learning
   rate and a **Train now!** button that trains it live in the browser and
   draws its learning curve. **Apply** makes the Play tab use your version
   (marked ✏️); **Reset to default** brings the original back.
@@ -84,9 +86,11 @@ One game, four different sources of knowledge. The lab is built around the quest
 - **THINK** the panel shows +1000 / 0 / −1000 for every move: win, draw, lose.
   It assumes *you* play perfectly too — which is why it never gambles.
 - **MAKE** the `CONFIG`:
-  * `depth` 1 → the brain goes almost blind (the evaluation does all the thinking now).
+  * `depth` 1 → the AI goes almost blind (the evaluation does all the thinking now).
   * `alpha_beta` False → same moves, but watch the position counter explode
     (~23,000 positions with it on, ~550,000 without).
+  * `caution` 60 → the AI slips sometimes and plays a random square instead of
+    its best move. It becomes beatable — and much more fun to play against!
   * Zero out `evaluation` weights → at depth 9 it's *still* perfect (only real
     endings matter); at depth 1 it falls apart.
   * Find the smallest depth where your brain still beats Greedy.
