@@ -1138,14 +1138,10 @@
 
         var topQ=Math.max.apply(null, view.perMove.map(function(s){ return s.q; }));
         function rlDisp(q){
-          // rewards are win +10 / draw 0 / loss -10  ->  friendly 0-100 scale:
-          // 0 = a loss, 50 = a draw, 100 = a win
-          var d=Math.round((q+10)*5);
-          if(d<0) d=0;
-          if(d>100) d=100;
-          return d;
+          // same range as training: win +10 / draw 0 / loss -10
+          return Math.round(q*10)/10;
         }
-        function rlCls(d){ return d>=70 ? "good" : (d>=45 ? "mid" : "bad"); }
+        function rlCls(d){ return d>=4 ? "good" : (d>=-1 ? "mid" : "bad"); }
         var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.q===topQ) cls+=" top";
@@ -1155,7 +1151,7 @@
                  '<span class="res '+rlCls(d)+'">value <b>'+d+'</b></span></div>';
         }).join("");
         html+=stepBox(2, "Each move — its learned value",
-          '<div class="explain">It looks up the value table for the current position and reads the learned value of each move. (0 = a loss · 50 = a draw · 100 = a win)</div>'+
+          '<div class="explain">It looks up the value table for the current position and reads the learned value of each move. (win +10 · draw 0 · loss −10)</div>'+
           '<div class="cand-grid">'+rows+'</div>');
         var rlLead = view.reflex
           ? (view.reflex==="win" ? "A reflex applied first — it took the win." : "A reflex applied first — it blocked your immediate threat.")
