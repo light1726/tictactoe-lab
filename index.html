@@ -311,6 +311,7 @@
   .res.good{color:var(--teal-deep);} .res.mid{color:var(--sun-deep);} .res.bad{color:var(--bad);}
   .cand.picked .res.good, .cand.picked .res.mid, .cand.picked .res.bad{color:#fff;}
   .poss{display:inline-block;background:var(--grape-pale);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:700;color:var(--ink);}
+  .res-stack{display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex:1 1 auto;}
   .arrow{font-weight:800;font-size:18px;color:var(--ink);}
   .out{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:800;}
   .out.win{background:var(--teal);color:#fff;}
@@ -898,8 +899,10 @@
           var cls="cand";
           if(s.m===view.chosen) cls+=" picked";
           return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
+                 '<div class="res-stack">'+
                  '<span class="poss">Possible: '+s.poss.map(valWord).join(", ")+'</span>'+
-                 '<span class="arrow">→</span>'+outcomeChip(s.lowest)+'</div>';
+                 outcomeChip(s.lowest)+
+                 '</div></div>';
         }).join("");
         html+=stepBox(2, "Each move — what "+foe+" can do to me",
           '<div class="explain">'+foe+' always picks the reply that hurts me the most.</div>'+
