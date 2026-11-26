@@ -44,8 +44,8 @@ One game, four different sources of knowledge. The lab is built around the quest
   After every AI move, the purple panel walks through its thinking **step by
   step**, in the same four-step shape as the course slides: the facts → how it
   reasoned → the scores/values → the decision.
-- **Make** — keep it simple. Logic lets you edit the rule list (points, add /
-  remove / reorder). Probability has one knob, the simulated games per move;
+- **Make** — keep it simple. Logic lets you edit the rule list (reorder, add /
+  remove). Probability has one knob, the simulated games per move;
   Search has one knob, the look-ahead depth; RL has training games, learning
   rate and a **Train now!** button that trains it live in the browser and
   draws its learning curve. **Apply** makes the Play tab use your version
@@ -56,15 +56,14 @@ One game, four different sources of knowledge. The lab is built around the quest
 ### Logic (`heuristics.py`)
 
 - **PLAY** a game or two against it. It never loses — annoying, right?
-- **THINK** the purple panel shows each rule voting points for each square.
-  All of its smarts are *your* rules, nothing more.
-- **MAKE** edit the `rules` list inside `CONFIG` at the top of the file:
+- **THINK** the purple panel shows the rules being checked in order, with a ✓
+  on the first rule that applies. All of its smarts are *your* rules, nothing more.
+- **MAKE** edit the `rules` list inside `CONFIG` at the top of the file — the
+  rules are checked top to bottom and the first one that applies decides:
   * Delete the `"block their line"` rule → rerun → check the scorecard. It's broken!
-  * Give `"block their line"` more points than `"finish my line"` → it forgets to win.
-  * Add a new rule: `(15, "take the opposite corner")` → does it help vs Minimax?
-  * Switch `"mode"` to `"priority"` — now the *order* of the rules matters. Move
-    `"take the center"` above `"block their line"` and watch it forget to defend.
-- **REFLECT** where did this brain's knowledge come from? What happens in a
+  * Move `"take the center"` ABOVE `"block their line"` → it forgets to defend.
+  * Add `"take the opposite corner"` somewhere in the list → does it help vs Minimax?
+- **REFLECT** where did this AI's knowledge come from? What happens in a
   situation no rule covers?
 
 ### Probability (`probability.py`)

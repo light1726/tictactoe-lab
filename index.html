@@ -309,6 +309,10 @@
   .fact{background:#fff;border:2px solid var(--line);border-radius:8px;padding:2px 9px;font-size:13px;font-weight:700;color:var(--ink);}
   .decision{background:var(--sun);border:2px solid var(--ink);border-radius:12px;padding:9px 13px;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);margin-top:2px;}
 
+  .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
+  .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
+  .rule-order{font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:var(--grape-deep);min-width:20px;text-align:right;}
+
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
     .stage{padding:20px 15px;}
@@ -382,10 +386,11 @@
 
 </div>
 
-<script src="brains/heuristics.js"></script>
-<script src="brains/probability.js"></script>
-<script src="brains/search.js"></script>
-<script src="brains/rl.js"></script>
+<!-- bump ?v= whenever the brains are regenerated (cache-busting) -->
+<script src="brains/heuristics.js?v=3"></script>
+<script src="brains/probability.js?v=3"></script>
+<script src="brains/search.js?v=3"></script>
+<script src="brains/rl.js?v=3"></script>
 
 <script>
 (function(){
@@ -541,42 +546,16 @@
   }
 
   function heuristicBrain(b,p,cfg){
-    var scores={}, i, m, move=null, best=-1;
-    var lm=legalMoves(b);
-    for(i=0;i<lm.length;i++) scores[lm[i]]={total:0, hits:[]};
+    // The rules are checked in ORDER: the first one that applies decides.
+    var lm=legalMoves(b), i;
     for(i=0;i<cfg.rules.length;i++){
-      var points=cfg.rules[i][0], action=cfg.rules[i][1];
-      if(cfg.mode==="priority"){
-        var ms=ruleMoves(b,p,action);
-        if(ms.length){
-          move=ms[0];
-          return {move:move, view:heuristicView(b,p,cfg,move)};
-        }
-      }
-      var got=ruleMoves(b,p,action), j;
-      for(j=0;j<got.length;j++){
-        scores[got[j]].total+=points;
-        scores[got[j]].hits.push({action:action, points:points});
+      var ms=ruleMoves(b,p,cfg.rules[i]);
+      if(ms.length){
+        var move=ms[0];               // ties: lowest square number wins
+        return {move:move, view:{type:"heuristics", matchedIndex:i, chosen:move, cfg:cfg}};
       }
     }
-    for(m in scores){
-      if(scores[m].total>best){ best=scores[m].total; move=parseInt(m,10); }
-    }
-    return {move:move, view:heuristicView(b,p,cfg,move)};
-  }
-
-  function heuristicView(b,p,cfg,chosen){
-    var scores=[], lm=legalMoves(b), i;
-    for(i=0;i<lm.length;i++) scores.push({m:lm[i], total:0, hits:[]});
-    for(i=0;i<cfg.rules.length;i++){
-      var points=cfg.rules[i][0], action=cfg.rules[i][1];
-      var got=ruleMoves(b,p,action), j;
-      for(j=0;j<got.length;j++){
-        var s=scores.find(function(x){ return x.m===got[j]; });
-        s.total+=points; s.hits.push({action:action,points:points});
-      }
-    }
-    return {type:"heuristics", scores:scores, chosen:chosen, cfg:cfg};
+    return {move:lm[0], view:{type:"heuristics", matchedIndex:-1, chosen:lm[0], cfg:cfg}};
   }
 
   function playout(b,p,imagined){
@@ -724,23 +703,21 @@
     var html="";
     html+=stepBox(1, "The facts", factsHtml(b, p));
     if(view.type==="heuristics"){
-      var ruleLines=view.cfg.rules.map(function(r){
-        var ms=ruleMoves(b,p,r[1]);
-        if(!ms.length) return '<div class="explain">“'+esc(r[1])+'” → nothing (it doesn\'t apply)</div>';
-        return '<div class="explain"><b>“'+esc(r[1])+'”</b> → '+
-          ms.map(function(m){ return "square "+(m+1)+" (+"+r[0]+")"; }).join(", ")+'</div>';
+      var ruleLines=view.cfg.rules.map(function(action, idx){
+        var ms=ruleMoves(b,p,action);
+        var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓ this rule decides</span>' : '';
+        var cls = (idx===view.matchedIndex) ? "explain dec" : "explain";
+        if(!ms.length) return '<div class="'+cls+'">'+(idx+1)+'. “'+esc(action)+'” → nothing (it doesn\'t apply)'+tick+'</div>';
+        return '<div class="'+cls+'">'+(idx+1)+'. <b>“'+esc(action)+'”</b> → '+
+          ms.map(function(m){ return "square "+(m+1); }).join(", ")+tick+'</div>';
       }).join("");
-      html+=stepBox(2, "Apply the rules", ruleLines);
-      html+=stepBox(3, "Points for each move", '<div class="cand-grid">'+view.scores.map(function(s){
-        var cls="cand";
-        if(s.m===view.chosen) cls+=" picked";
-        var hits=s.hits.map(function(h){ return h.action+" +"+h.points; }).join(" · ");
-        return '<div class="'+cls+'"><span class="sq">'+(s.m+1)+'</span>'+
-               '<span class="val">'+(hits?esc(hits):"no rule applies")+'</span>'+
-               '<span style="margin-left:auto;font-weight:600;font-size:13px;">'+s.total+' pts</span></div>';
-      }).join("")+'</div>');
-      var top=view.scores.reduce(function(m,s){ return s.total>m?s.total:m; },0);
-      html+='<div class="decision">Decision: square <b>'+(view.chosen+1)+'</b> has the most points ('+top+') → play there.</div>';
+      html+=stepBox(2, "Check the rules in order", ruleLines);
+      if(view.matchedIndex>=0){
+        var action=view.cfg.rules[view.matchedIndex];
+        html+='<div class="decision">Decision: “'+esc(action)+'” applies first → play square <b>'+(view.chosen+1)+'</b>.</div>';
+      } else {
+        html+='<div class="decision">Decision: no rule applies — it takes the first empty square ('+(view.chosen+1)+').</div>';
+      }
     }
     else if(view.type==="probability"){
       var nSim=view.cfg.simulations;
@@ -843,13 +820,13 @@
       brainHowBody=$("brainHowBody");
 
   var HOW = {
-    heuristics:"The AI knows facts about the board — whose turn it is and which squares are taken — and a list of IF–THEN rules. Each rule gives points to the squares it likes, and the square with the most points is played. All of its knowledge came from the rules a human wrote.",
+    heuristics:"The AI knows facts about the board — whose turn it is and which squares are taken — and a list of IF–THEN rules. It checks the rules in order and uses the first one that applies. All of its knowledge came from the rules a human wrote.",
     probability:"The AI doesn't know any strategy at all. For each square it rolls dice: it imagines the rest of the game played out randomly, again and again, and counts wins, draws and losses. Its smarts come from statistics — and from whoever it imagined playing against.",
     search:"The AI imagines EVERY possible future: your replies, its replies, all the way to the end, and picks the move with the best guaranteed result. With full depth it can never lose — but it assumes you also play perfectly, so it never gambles or tricks you.",
     rl:"The AI started with a completely blank table of move-values. It played thousands of games, collected rewards (+1 win, 0 draw, −1 loss), and slowly nudged its values toward them. Its smarts come from experience — it can only be good at games like the ones it practiced."
   };
   var REFLECT = {
-    heuristics:"🤔 <b>Think:</b> Where did this AI's knowledge come from? What happens in a situation that no rule covers? (Try removing the “block their line” rule and see what breaks.)",
+    heuristics:"🤔 <b>Think:</b> Where did this AI's knowledge come from? What happens in a situation that no rule covers? (Try removing the “block their line” rule — or moving “take the center” above it — and see what breaks.)",
     probability:"🤔 <b>Think:</b> This AI judges moves by games against a random opponent. What would happen if its imagined opponent were smarter?",
     search:"🤔 <b>Think:</b> Why can the search AI never lose? And why does it never try to trick you, even when it could win faster? (Try depth 1 and see what it turns into.)",
     rl:"🤔 <b>Think:</b> The RL AI learned from the games it played. What if it had practiced only against a perfect player — would it still beat Randomo?"
@@ -1102,24 +1079,24 @@
   function heuristicsEditor(cfg){
     var wrap=document.createElement("div");
     var block=document.createElement("div"); block.className="cfg-block";
-    var h=document.createElement("h3"); h.textContent="Rules — each rule gives points to the squares it likes";
+    var h=document.createElement("h3"); h.textContent="Rules — checked in order";
     block.appendChild(h);
     var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
-    help.innerHTML="The AI plays the square with the most points. <b>More points = more important.</b>";
+    help.innerHTML="The AI checks the rules from <b>top to bottom</b> and uses the <b>first</b> one that applies.";
     block.appendChild(help);
     var list=document.createElement("div");
     function rerender(){
       list.innerHTML="";
-      cfg.rules.forEach(function(r,i){
+      cfg.rules.forEach(function(action,i){
         var row=document.createElement("div"); row.className="cfg-rule";
-        var inp=numInput(r[0], 1, -1000, 1000, function(v){ r[0]=v; });
+        var num=document.createElement("span"); num.className="rule-order"; num.textContent=(i+1)+".";
         var sel=document.createElement("select"); sel.className="cfg-select";
         ACTIONS.forEach(function(a){
           var o=document.createElement("option"); o.value=a; o.textContent=a;
-          if(a===r[1]) o.selected=true;
+          if(a===action) o.selected=true;
           sel.appendChild(o);
         });
-        sel.addEventListener("change", function(){ r[1]=sel.value; });
+        sel.addEventListener("change", function(){ cfg.rules[i]=sel.value; });
         var up=document.createElement("button"); up.type="button"; up.className="mini-btn"; up.textContent="↑"; up.title="move rule up";
         up.disabled=(i===0);
         up.addEventListener("click", function(){
@@ -1132,14 +1109,14 @@
         });
         var del=document.createElement("button"); del.type="button"; del.className="mini-btn"; del.textContent="✕"; del.title="remove rule";
         del.addEventListener("click", function(){ cfg.rules.splice(i,1); rerender(); });
-        row.appendChild(inp); row.appendChild(sel); row.appendChild(up); row.appendChild(down); row.appendChild(del);
+        row.appendChild(num); row.appendChild(sel); row.appendChild(up); row.appendChild(down); row.appendChild(del);
         list.appendChild(row);
       });
     }
     rerender();
     block.appendChild(list);
     var add=document.createElement("button"); add.type="button"; add.className="mini-btn"; add.textContent="+ add a rule";
-    add.addEventListener("click", function(){ cfg.rules.push([10,"take the center"]); rerender(); });
+    add.addEventListener("click", function(){ cfg.rules.push("take the center"); rerender(); });
     block.appendChild(add);
     wrap.appendChild(block);
     return wrap;
