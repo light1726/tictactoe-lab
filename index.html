@@ -327,7 +327,7 @@
   .demo-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:6px 0;}
   .chip-v{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13px;font-weight:800;color:var(--ink);line-height:1.7;white-space:nowrap;}
   .vtable{display:inline-block;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:6px 10px;}
-  .vrow{display:grid;grid-template-columns:74px 100px 100px 95px;gap:12px;font-size:13.5px;font-weight:700;color:#fff;align-items:center;}
+  .vrow{display:grid;grid-template-columns:74px 110px 95px;gap:12px;font-size:13.5px;font-weight:700;color:#fff;align-items:center;}
   .vrow .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.35);border-radius:5px;}
   .vrow.vhead{color:var(--sun);font-weight:800;margin-bottom:3px;}
   .vrow.vdots{color:rgba(255,255,255,.6);}
@@ -901,9 +901,9 @@
     return '<span class="mini-board">'+inner+'</span>';
   }
   function vtableHtml(rows){
-    var h='<div class="vtable"><div class="vrow vhead"><span>board</span><span>state</span><span>move</span><span>value</span></div>';
+    var h='<div class="vtable"><div class="vrow vhead"><span>board</span><span>move</span><span>value</span></div>';
     rows.forEach(function(r){
-      h+='<div class="vrow"><span>'+r.board+'</span><span>'+r.pos+'</span><span>'+r.move+'</span><span>'+r.val+'</span></div>';
+      h+='<div class="vrow"><span>'+r.board+'</span><span>'+r.move+'</span><span>'+r.val+'</span></div>';
     });
     h+='<div class="vrow vdots"><span>⋯</span></div></div>';
     return h;
@@ -941,9 +941,9 @@
       for(var ri=0;ri<limit;ri++){
         var idx=aiIdx[ri];
         var before = idx===0 ? empty : seq[idx-1].board;
-        initRows.push({board:miniBoardHtml(before), pos:"position "+(idx+1), move:"square "+(seq[idx].m+1), val:"0"});
+        initRows.push({board:miniBoardHtml(before), move:"square "+(seq[idx].m+1), val:"0"});
         var upd=Math.round(lr*Math.pow(disc, seq.length-1-idx)*reward*10)/10;
-        updRows.push({board:miniBoardHtml(before), pos:"position "+(idx+1), move:"square "+(seq[idx].m+1), val:"0 → "+(upd>0?"+":"")+upd});
+        updRows.push({board:miniBoardHtml(before), move:"square "+(seq[idx].m+1), val:"0 → "+(upd>0?"+":"")+upd});
       }
       return stepBox(1, "Initialize the value table",
                '<div class="explain">Every (state, move) starts at 0.</div>'+
