@@ -62,7 +62,7 @@ CONFIG = {
     "discount": 0.9,
 
     # Exploration: how often to play a RANDOM move instead of the
-    # believed-best one. This is the STARTING value — it fades toward 0.02
+    # believed-best one. This is the STARTING value — it fades toward 0.01
     # as the brain gains experience. (Early on it must explore to discover
     # ideas; near the end it should mostly use what it learned.)
     "exploration": 0.5,
@@ -127,7 +127,7 @@ def opponent_move(b, p):
 def current_exploration(episode, total):
     """Exploration fades from its start value toward 0.02 during training."""
     eps = CONFIG["exploration"] * (1 - episode / total)
-    return max(0.02, eps)
+    return max(0.01, eps)
 
 
 def play_episode(brain_player, eps):

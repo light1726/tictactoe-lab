@@ -1334,14 +1334,23 @@
     var block=document.createElement("div"); block.className="cfg-block";
     var h=document.createElement("h3"); h.textContent="Training settings";
     block.appendChild(h);
+    var dirty=false;
+    var hint=document.createElement("p"); hint.className="help hidden"; hint.style.margin="0 0 10px";
+    hint.style.color="var(--bad)"; hint.style.fontWeight="800";
+    hint.textContent="⚠ Settings changed — press “Train now!” to retrain (Apply alone keeps the old brain).";
+    block.appendChild(hint);
+    function markDirty(){
+      dirty=true;
+      hint.classList.remove("hidden");
+    }
     var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
     help.innerHTML="It learns by playing games. <b>More games = more experience</b>; a higher learning rate means each game changes its opinions more.";
     block.appendChild(help);
     var r2=cfgRow("Training games:");
-    r2.appendChild(numInput(cfg.episodes, 1000, 1000, 100000, function(v){ cfg.episodes=Math.max(1000,Math.round(v)); }));
+    r2.appendChild(numInput(cfg.episodes, 1000, 1000, 100000, function(v){ cfg.episodes=Math.max(1000,Math.round(v)); markDirty(); }));
     block.appendChild(r2);
     var r3=cfgRow("Learning rate α:");
-    r3.appendChild(rangeInput(cfg.learning_rate, 0.05, 1, 0.05, function(v){ cfg.learning_rate=v; }));
+    r3.appendChild(rangeInput(cfg.learning_rate, 0.05, 1, 0.05, function(v){ cfg.learning_rate=v; markDirty(); }));
     block.appendChild(r3);
 
     var trainBtn=document.createElement("button"); trainBtn.type="button"; trainBtn.className="btn btn--teal";
@@ -1376,6 +1385,8 @@
       }, function(trained){
         CUSTOM.rl={config:cloneObj(cfg), qtable:trained.qtable, positions:trained.positions, curve:trained.curve};
         selectedBrain="rl";   // training applies to the Play tab's brain too
+        dirty=false;
+        hint.classList.add("hidden");
         prog.classList.add("hidden");
         result.classList.remove("hidden");
         result.innerHTML='<div style="font-weight:800;font-size:14px;color:var(--teal-deep);margin-bottom:8px;">✓ Trained &amp; applied — now '+trained.positions+' positions known ✏️</div>';
@@ -1431,7 +1442,7 @@
     function episode(brainSide){
       var b=new Array(9).fill(EMPTY), p=X, path=[], move;
       var eps=cfg.exploration*(1-ep/cfg.episodes);
-      if(eps<0.02) eps=0.02;
+      if(eps<0.01) eps=0.01;
       // "mix": a different training partner for each game
       var partner = cfg.train_against==="mix" ? pick(["random","greedy","minimax"]) : cfg.train_against;
       while(true){
