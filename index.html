@@ -276,12 +276,13 @@
     border:2.5px solid var(--line);border-radius:9px;padding:6px 9px;background:#fff;color:var(--ink);
   }
   .cfg-num:focus-visible{outline:3px solid var(--sun);outline-offset:1px;}
-  .cfg-rule{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+  .cfg-rule{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;}
   .cfg-rule .cfg-num{width:80px;}
   select.cfg-select{
     font-family:"Nunito",sans-serif;font-size:14px;font-weight:700;
     border:2.5px solid var(--ink);border-radius:9px;padding:6px 9px;background:#fff;color:var(--ink);
   }
+  .cfg-rule select.cfg-select{max-width:148px;font-size:13px;padding:5px 6px;flex:0 1 auto;}
   .mini-btn{
     font-family:"Fredoka",sans-serif;font-weight:600;font-size:13px;cursor:pointer;
     border:2.5px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);
@@ -323,9 +324,17 @@
   .cand.picked .res, .cand.picked .res .w, .cand.picked .res .d, .cand.picked .res .l{color:#fff;}
 
   .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
+  .kw{display:inline-block;background:var(--grape);color:#fff;border:2px solid var(--ink);border-radius:6px;padding:0 6px;font-size:12.5px;font-weight:800;line-height:1.5;}
+  .kw.then{background:var(--teal);}
+  .chip-c{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:8px;padding:0 8px;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.6;}
+  .chip-m{display:inline-block;background:var(--sun);border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13.5px;font-weight:800;color:var(--ink);line-height:1.6;}
+  .cand.picked .kw{border-color:#fff;}
+  .cand.picked .chip-c{background:rgba(255,255,255,.28);border-color:#fff;color:#fff;}
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
   .rule-order{font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:var(--grape-deep);min-width:20px;text-align:right;}
-  .rule-w{font-weight:800;font-size:13.5px;color:var(--grape-deep);}
+  .rule-w{font-weight:800;font-size:12.5px;color:var(--grape-deep);white-space:nowrap;}
+  .cfg-rule .mini-btn{padding:2px 7px;font-size:12px;flex:0 0 auto;}
+  .cfg-rule .rule-order{min-width:16px;font-size:13px;flex:0 0 auto;}
 
   .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;}
   .cand.picked .rule-name{color:#fff;}
@@ -813,7 +822,9 @@
         var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓</span>' : '';
         var body = !cands.length ? '<span class="res no">—</span>'
                  : '<span class="res go">squares '+cands.map(function(m){ return m+1; }).join(", ")+'</span>';
-        var txt='IF <b>'+esc(r.c1)+'</b>'+(r.c2?' AND <b>'+esc(r.c2)+'</b>':'')+' THEN <b>'+esc(r.m)+'</b>';
+        var txt='<span class="kw">IF</span> <span class="chip-c">'+esc(r.c1)+'</span>'+
+                (r.c2?' <span class="kw">AND</span> <span class="chip-c">'+esc(r.c2)+'</span>':'')+
+                ' <span class="kw then">THEN</span> <span class="chip-m">'+esc(r.m)+'</span>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
                '<span class="rule-name">'+txt+'</span>'+body+tick+'</div>';
       }).join("");
