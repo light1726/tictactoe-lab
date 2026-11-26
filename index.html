@@ -351,6 +351,11 @@
   .mini-cell.o{color:var(--sun-deep);}
   .mini-cell.reply{box-shadow:0 0 0 2.5px var(--sun);border-color:var(--sun-deep);}
   .reply-label{font-size:13.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}
+  .res-chips{display:flex;gap:5px;}
+  .rchip{font-size:12.5px;font-weight:800;border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:1px 9px;color:rgba(255,255,255,.45);background:rgba(255,255,255,.08);}
+  .rchip.on.win{background:var(--teal);color:#fff;border-color:var(--ink);}
+  .rchip.on.draw{background:var(--sun);color:var(--ink);border-color:var(--ink);}
+  .rchip.on.loss{background:#f2c9c9;color:var(--bad);border-color:var(--ink);}
 
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
@@ -914,8 +919,14 @@
             if(ci===rp.r) cls+=" reply";
             cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
           }
+          var vcls = rp.v===1 ? "win" : (rp.v===0 ? "draw" : "loss");
           return '<div class="reply-card'+(worst?" worst":"")+'">'+
                  '<div class="mini-board">'+cells+'</div>'+
+                 '<div class="res-chips">'+
+                 '  <span class="rchip win'+(vcls==="win"?" on":"")+'">win</span>'+
+                 '  <span class="rchip draw'+(vcls==="draw"?" on":"")+'">draw</span>'+
+                 '  <span class="rchip loss'+(vcls==="loss"?" on":"")+'">loss</span>'+
+                 '</div>'+
                  '</div>';
         }).join("");
         var assured = ch.lowest===1 ? "even "+foe+"'s best reply still loses — I force a win"
