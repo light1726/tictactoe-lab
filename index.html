@@ -321,6 +321,7 @@
   .res-tag.draw{color:var(--sun);border-color:var(--sun);}
   .res-tag.loss{color:#F4C4C4;border-color:#F4C4C4;}
   .more-moves{color:rgba(255,255,255,.7);font-weight:700;font-size:14.5px;margin-top:8px;}
+  .more-records{display:flex;align-items:center;color:rgba(255,255,255,.7);font-weight:700;font-size:14.5px;padding:0 12px;white-space:nowrap;}
   .arrow{font-weight:800;font-size:18px;color:var(--ink);}
   .out{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-size:15.5px;font-weight:800;}
   .out.win{background:var(--teal);color:#fff;}
@@ -929,11 +930,10 @@
       }).join("");
       html+=stepBox(2, "Records of past games",
         '<div class="explain">It checks records of complete games that started from this state and took move square <b>'+(view.chosen+1)+'</b>. The current state is shown in <span style="color:#7EF0E4;">green</span>, the move is highlighted. It repeats this for <b>every possible next move</b>.</div>'+
-        '<div class="reply-grid">'+recCards+'</div>'+
-        (nSim>10 ? '<div class="more-moves">More records … up to '+nSim+' in total.</div>' : '')+
+        '<div class="reply-grid">'+recCards+(nSim>10 ? '<div class="more-records">More records … up to '+nSim+' in total.</div>' : '')+'</div>'+
         '<div class="explain">Counting all '+nSim+' records for this move: <b>'+chm.win+' wins · '+chm.draw+' draws · '+chm.loss+' losses</b>.</div>');
       html+=stepBox(3, "Each move — its chances",
-        '<div class="explain">from '+nSim+' games imagined for each move</div><div class="cand-grid">'+rows+'</div>');
+        '<div class="explain">from '+nSim+' records for each move</div><div class="cand-grid">'+rows+'</div>');
       html+=stepBox(4, "Output", '<div class="output-box">Highest expected score → <b>play square '+(view.chosen+1)+'</b>'+(winNow?' — I win!':'')+'</div>');
     }
     else if(view.type==="search"){
@@ -1423,12 +1423,12 @@
   function probabilityEditor(cfg){
     var wrap=document.createElement("div");
     var block=document.createElement("div"); block.className="cfg-block";
-    var h=document.createElement("h3"); h.textContent="Simulated games per move";
+    var h=document.createElement("h3"); h.textContent="Records of past games per move";
     block.appendChild(h);
     var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
-    help.innerHTML="For each square it imagines this many random games and plays the one that wins most often. <b>More games = more confident.</b>";
+    help.innerHTML="For each square it checks this many records of past games and plays the one that wins most often. <b>More records = more confident.</b>";
     block.appendChild(help);
-    var r1=cfgRow("Simulations:");
+    var r1=cfgRow("Number of records to check:");
     r1.appendChild(numInput(cfg.simulations, 10, 10, 5000, function(v){ cfg.simulations=Math.max(10,Math.round(v)); }));
     block.appendChild(r1);
     wrap.appendChild(block);
