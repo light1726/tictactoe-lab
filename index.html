@@ -325,6 +325,7 @@
   .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
   .rule-order{font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:var(--grape-deep);min-width:20px;text-align:right;}
+  .rule-if{flex-basis:100%;font-size:13px;font-weight:700;color:#5b5470;margin-top:2px;line-height:1.4;}
 
   .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;}
   .cand.picked .rule-name{color:#fff;}
@@ -771,12 +772,11 @@
         var body = !ms.length ? '<span class="res no">—</span>'
                  : '<span class="res go">squares '+ms.map(function(m){ return m+1; }).join(", ")+'</span>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
-               '<span class="rule-name">'+esc(action)+'</span>'+body+tick+'</div>';
+               '<span class="rule-name">'+esc(RULE_TEXT[action]||action)+'</span>'+body+tick+'</div>';
       }).join("");
       html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
-        var action=view.cfg.rules[view.matchedIndex];
-        html+='<div class="decision">“'+esc(action)+'” applies first → <b>play square '+(view.chosen+1)+'</b></div>';
+        html+='<div class="decision">Rule '+(view.matchedIndex+1)+' applies first → <b>play square '+(view.chosen+1)+'</b></div>';
       } else {
         html+='<div class="decision">No rule applies → <b>play the first empty square ('+(view.chosen+1)+')</b></div>';
       }
@@ -1159,6 +1159,15 @@
   /* --- per-method editors --- */
 
   var ACTIONS=["finish my line","block their line","take the center","take the opposite corner","take a corner","take an edge","take any square"];
+  var RULE_TEXT={
+    "finish my line":"IF I have two in a line AND the third square is empty, THEN play it — I win.",
+    "block their line":"IF the opponent has two in a line AND the third square is empty, THEN play it — I block them.",
+    "take the center":"IF the center is empty, THEN play the center.",
+    "take the opposite corner":"IF the opponent owns one corner AND the opposite corner is empty, THEN play the opposite corner.",
+    "take a corner":"IF a corner is empty, THEN play it.",
+    "take an edge":"IF an edge is empty, THEN play it.",
+    "take any square":"IF a square is empty, THEN play it."
+  };
 
   function heuristicsEditor(cfg){
     var wrap=document.createElement("div");
@@ -1193,7 +1202,9 @@
         });
         var del=document.createElement("button"); del.type="button"; del.className="mini-btn"; del.textContent="✕"; del.title="remove rule";
         del.addEventListener("click", function(){ cfg.rules.splice(i,1); rerender(); });
-        row.appendChild(num); row.appendChild(sel); row.appendChild(up); row.appendChild(down); row.appendChild(del);
+        var ifn=document.createElement("div"); ifn.className="rule-if";
+        ifn.textContent=RULE_TEXT[action]||action;
+        row.appendChild(num); row.appendChild(sel); row.appendChild(up); row.appendChild(down); row.appendChild(del); row.appendChild(ifn);
         list.appendChild(row);
       });
     }
