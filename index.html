@@ -326,6 +326,10 @@
   .train-head{font-weight:800;font-size:15.5px;color:var(--sun);margin-bottom:8px;}
   .demo-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:6px 0;}
   .chip-v{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:0 8px;font-size:13px;font-weight:800;color:var(--ink);line-height:1.7;white-space:nowrap;}
+  .vtable{display:inline-block;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:6px 10px;}
+  .vrow{display:grid;grid-template-columns:105px 105px 95px;gap:12px;font-size:13.5px;font-weight:700;color:#fff;}
+  .vrow.vhead{color:var(--sun);font-weight:800;margin-bottom:3px;}
+  .vrow.vdots{color:rgba(255,255,255,.6);}
   .demo-arrow{color:rgba(255,255,255,.7);font-weight:800;font-size:17px;}
   .demo-row .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.25);border-radius:5px;}
   .arrow{font-weight:800;font-size:18px;color:var(--ink);}
@@ -884,7 +888,8 @@
     '</div>';
   }
   function rlDemoHtml(cfg){
-    var qtable=cfg.qtable||{}, lr=cfg.config.learning_rate, winR=cfg.config.rewards.win;
+    var qtable=cfg.qtable||{}, lr=cfg.config.learning_rate;
+    var R=cfg.config.rewards, disc=cfg.config.discount;
     function dMove(b,p){
       var qs=qtable[rlKey(b,p)];
       var lm=legalMoves(b);
@@ -900,47 +905,53 @@
       for(k=0;k<lm.length;k++) if(winner(play(b,lm[k],foe))===foe) return lm[k];
       return dMove(b,p);
     }
-    var tries=0;
-    while(tries++<6){
-      var b=new Array(9).fill(EMPTY), p2=X, seq=[];
+    function buildSteps(seq, resWord, reward){
+      var cells=seq.map(function(st){
+        var inner="";
+        for(var ci=0;ci<9;ci++){
+          var c=st.board[ci];
+          var cls="mini-cell";
+          if(c===X) cls+=" x";
+          if(c===O) cls+=" o";
+          if(ci===st.m) cls+=" mine";
+          inner+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+        }
+        return '<span class="mini-board">'+inner+'</span>';
+      }).join('<span class="demo-arrow">→</span>');
+      var initChips="";
+      for(var sq=1;sq<=9;sq++) initChips+='<span class="chip-v">square '+sq+': 0</span>';
+      var rowsHtml="";
+      for(var ri=0;ri<2 && ri<seq.length;ri++){
+        var upd=Math.round(lr*Math.pow(disc, seq.length-1-ri)*reward*10)/10;
+        rowsHtml+='<div class="vrow"><span>position '+(ri+1)+'</span><span>square '+(seq[ri].m+1)+'</span><span>0 → '+(upd>0?"+":"")+upd+'</span></div>';
+      }
+      rowsHtml+='<div class="vrow vdots"><span>⋯</span></div>';
+      return stepBox(1, "Initialize the value table",
+               '<div class="explain">Every (state, move) starts at 0.</div>'+
+               '<div class="demo-row">'+initChips+'</div>')+
+             stepBox(2, "Play games and collect rewards",
+               '<div class="explain">It plays games to the end — here the AI is O against a practice partner.</div>'+
+               '<div class="demo-row">'+cells+'</div>'+
+               '<div class="route-result '+resWord+'">result: '+resWord+' → reward '+(reward>0?"+":"")+reward+'</div>')+
+             stepBox(3, "Update the value table",
+               '<div class="explain"><b>new value = old + α × (reward − old)</b> — applied to every move of that game:</div>'+
+               '<div class="vtable"><div class="vrow vhead"><span>state</span><span>move</span><span>value</span></div>'+rowsHtml+'</div>');
+    }
+    var tries=0, seq=null;
+    while(tries++<10){
+      var b=new Array(9).fill(EMPTY), p2=X;
+      seq=[];
       while(true){
-        var mv = p2===X ? bMove(b,p2) : randomMove(b);
+        var mv = p2===O ? bMove(b,p2) : randomMove(b);   // the AI plays O
         var nb=play(b,mv,p2);
         seq.push({board:nb, m:mv});
         var w=winner(nb);
-        if(w===X){
-          var cells=seq.map(function(st){
-            var inner="";
-            for(var ci=0;ci<9;ci++){
-              var c=st.board[ci];
-              var cls="mini-cell";
-              if(c===X) cls+=" x";
-              if(c===O) cls+=" o";
-              if(ci===st.m) cls+=" mine";
-              inner+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
-            }
-            return '<span class="mini-board">'+inner+'</span>';
-          }).join('<span class="demo-arrow">→</span>');
-          var step=Math.round(lr*winR*10)/10;
-          var initChips="";
-          for(var sq=1;sq<=9;sq++) initChips+='<span class="chip-v">square '+sq+': 0</span>';
-          return stepBox(1, "Initialize the value table",
-                   '<div class="explain">Every (state, move) starts at <b>0</b> — the brain knows nothing.</div>'+
-                   '<div class="demo-row">'+initChips+'</div>')+
-                 stepBox(2, "Play games and collect rewards",
-                   '<div class="explain">It plays whole games against practice partners, until each game ends with a result.</div>'+
-                   '<div class="demo-row">'+cells+'</div>'+
-                   '<div class="route-result win">result: win → reward +'+winR+'</div>')+
-                 stepBox(3, "Update the value table",
-                   '<div class="explain">The reward travels back along every move of that game: <b>new value = old + α × (reward − old)</b>. e.g. the first move (square '+(seq[0].m+1)+'): 0 → +'+step+'. After thousands of games the values become real knowledge.</div>');
-        }
+        if(w===O) return buildSteps(seq, "win", R.win);
         if(isFull(nb)) break;
         b=nb; p2=opp(p2);
       }
     }
-    return stepBox(1, "Initialize the value table", '<div class="explain">Every (state, move) starts at 0.</div>')+
-           stepBox(2, "Play games and collect rewards", '<div class="explain">It plays whole games against practice partners.</div>')+
-           stepBox(3, "Update the value table", '<div class="explain">Each result nudges the values of the moves that led to it.</div>');
+    return buildSteps(seq||[{board:new Array(9).fill(EMPTY), m:0}], "draw", R.draw);
   }
 
   function renderBrainView(view, b, p){
