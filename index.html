@@ -852,7 +852,7 @@
     var html="";
     html+=stepBox(1, "The facts", factsHtml(b, p));
     if(view.type==="heuristics"){
-      var ruleRows=view.cfg.rules.map(function(raw, idx){
+      function logicRuleRow(raw, idx){
         var r=normalizeRule(raw);
         var cands=ruleCandidates(b,p,r);
         var cls="cand";
@@ -865,10 +865,12 @@
                 '<span class="kw then">THEN</span><span class="chip-m">'+esc(r.m)+' <span class="chip-m-sub">· '+sub+'</span></span>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
                '<span class="rule-name">'+txt+'</span>'+tick+'</div>';
-      }).join("");
+      }
+      var ruleRows=view.cfg.rules.map(function(raw, idx){ return logicRuleRow(raw, idx); }).join("");
       html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
-        html+=stepBox(3, "The first rule that applies", '<div class="explain">Rule '+(view.matchedIndex+1)+' applies first — the rules above it did not.</div>');
+        html+=stepBox(3, "The first rule that applies",
+          '<div class="cand-grid">'+logicRuleRow(view.cfg.rules[view.matchedIndex], view.matchedIndex)+'</div>');
       } else {
         html+=stepBox(3, "The first rule that applies", '<div class="explain">No rule applies — it falls back to the first empty square.</div>');
       }
