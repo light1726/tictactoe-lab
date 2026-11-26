@@ -325,7 +325,7 @@
   .step-tick{display:inline-block;background:var(--teal);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800;margin-left:6px;}
   .explain.dec{background:rgba(255,255,255,.14);border-radius:8px;padding:5px 9px;}
   .rule-order{font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:var(--grape-deep);min-width:20px;text-align:right;}
-  .rule-if{flex-basis:100%;font-size:13px;font-weight:700;color:#5b5470;margin-top:2px;line-height:1.4;}
+  .rule-w{font-weight:800;font-size:13.5px;color:var(--grape-deep);}
 
   .rule-name{font-weight:800;font-size:15px;color:var(--ink);margin-right:auto;}
   .cand.picked .rule-name{color:#fff;}
@@ -571,12 +571,17 @@
     return CUSTOM[name] || BRAINS[name];
   }
 
-  function ruleMoves(b,p,action){
+  /* A logic rule = one or two IF-conditions + one THEN-move.
+     Each condition and each move names a set of squares; a rule applies
+     to the squares in the intersection. */
+  function condSet(b,p,cond){
     var lm=legalMoves(b), foe=opp(p), i;
-    if(action==="finish my line") return lm.filter(function(m){ return winner(play(b,m,p))===p; });
-    if(action==="block their line") return lm.filter(function(m){ return winner(play(b,m,foe))===foe; });
-    if(action==="take the center") return b[CENTER]===EMPTY?[CENTER]:[];
-    if(action==="take the opposite corner"){
+    if(cond==="I have two in a line") return lm.filter(function(m){ return winner(play(b,m,p))===p; });
+    if(cond==="opponent has two in a line") return lm.filter(function(m){ return winner(play(b,m,foe))===foe; });
+    if(cond==="center is empty") return b[CENTER]===EMPTY?[CENTER]:[];
+    if(cond==="a corner is empty") return lm.filter(function(m){ return CORNERS.indexOf(m)!==-1; });
+    if(cond==="an edge is empty") return lm.filter(function(m){ return EDGES.indexOf(m)!==-1; });
+    if(cond==="opponent owns one corner" || cond==="opposite corner is empty"){
       var their=b.map(function(c,idx){ return c===foe?idx:-1; }).filter(function(i){ return i!==-1 && CORNERS.indexOf(i)!==-1; });
       if(their.length===1){
         var op=8-their[0];
@@ -584,19 +589,55 @@
       }
       return [];
     }
-    if(action==="take a corner") return lm.filter(function(m){ return CORNERS.indexOf(m)!==-1; });
-    if(action==="take an edge") return lm.filter(function(m){ return EDGES.indexOf(m)!==-1; });
-    if(action==="take any square") return lm;
+    if(cond==="a square is empty") return lm;
     return [];
+  }
+  function moveSet(b,p,move){
+    var lm=legalMoves(b), foe=opp(p), i;
+    if(move==="play the winning square") return lm.filter(function(m){ return winner(play(b,m,p))===p; });
+    if(move==="play the blocking square") return lm.filter(function(m){ return winner(play(b,m,foe))===foe; });
+    if(move==="play the center") return b[CENTER]===EMPTY?[CENTER]:[];
+    if(move==="play a corner") return lm.filter(function(m){ return CORNERS.indexOf(m)!==-1; });
+    if(move==="play an edge") return lm.filter(function(m){ return EDGES.indexOf(m)!==-1; });
+    if(move==="play the opposite corner"){
+      var their=b.map(function(c,idx){ return c===foe?idx:-1; }).filter(function(i){ return i!==-1 && CORNERS.indexOf(i)!==-1; });
+      if(their.length===1){
+        var op=8-their[0];
+        return lm.indexOf(op)!==-1?[op]:[];
+      }
+      return [];
+    }
+    if(move==="play any empty square") return lm;
+    return [];
+  }
+  function normalizeRule(r){
+    // rules may be the short names from the default brain file, or built objects
+    if(typeof r==="string"){
+      var d=ACTION_DEFS[r];
+      if(d) return {c1:d.c1, c2:d.c2||"", m:d.m};
+      return {c1:"a square is empty", c2:"", m:"play any empty square"};
+    }
+    return {c1:r.c1, c2:r.c2||"", m:r.m};
+  }
+  function ruleCandidates(b,p,rule){
+    var s=condSet(b,p,rule.c1);
+    if(!s.length) return [];
+    if(rule.c2){
+      var s2=condSet(b,p,rule.c2);
+      s=s.filter(function(x){ return s2.indexOf(x)!==-1; });
+      if(!s.length) return [];
+    }
+    var ms=moveSet(b,p,rule.m);
+    return s.filter(function(x){ return ms.indexOf(x)!==-1; });
   }
 
   function heuristicBrain(b,p,cfg){
     // The rules are checked in ORDER: the first one that applies decides.
     var lm=legalMoves(b), i;
     for(i=0;i<cfg.rules.length;i++){
-      var ms=ruleMoves(b,p,cfg.rules[i]);
-      if(ms.length){
-        var move=ms[0];               // ties: lowest square number wins
+      var cands=ruleCandidates(b,p,normalizeRule(cfg.rules[i]));
+      if(cands.length){
+        var move=cands[0];          // ties: lowest square number wins
         return {move:move, view:{type:"heuristics", matchedIndex:i, chosen:move, cfg:cfg}};
       }
     }
@@ -764,15 +805,17 @@
     var html="";
     html+=stepBox(1, "The facts", factsHtml(b, p));
     if(view.type==="heuristics"){
-      var ruleRows=view.cfg.rules.map(function(action, idx){
-        var ms=ruleMoves(b,p,action);
+      var ruleRows=view.cfg.rules.map(function(raw, idx){
+        var r=normalizeRule(raw);
+        var cands=ruleCandidates(b,p,r);
         var cls="cand";
         if(idx===view.matchedIndex) cls+=" picked";
         var tick = (idx===view.matchedIndex) ? ' <span class="step-tick">✓</span>' : '';
-        var body = !ms.length ? '<span class="res no">—</span>'
-                 : '<span class="res go">squares '+ms.map(function(m){ return m+1; }).join(", ")+'</span>';
+        var body = !cands.length ? '<span class="res no">—</span>'
+                 : '<span class="res go">squares '+cands.map(function(m){ return m+1; }).join(", ")+'</span>';
+        var txt='IF <b>'+esc(r.c1)+'</b>'+(r.c2?' AND <b>'+esc(r.c2)+'</b>':'')+' THEN <b>'+esc(r.m)+'</b>';
         return '<div class="'+cls+'"><span class="sq">'+(idx+1)+'</span>'+
-               '<span class="rule-name">'+esc(RULE_TEXT[action]||action)+'</span>'+body+tick+'</div>';
+               '<span class="rule-name">'+txt+'</span>'+body+tick+'</div>';
       }).join("");
       html+=stepBox(2, "Check the rules in order", '<div class="cand-grid">'+ruleRows+'</div>');
       if(view.matchedIndex>=0){
@@ -1158,15 +1201,16 @@
 
   /* --- per-method editors --- */
 
-  var ACTIONS=["finish my line","block their line","take the center","take the opposite corner","take a corner","take an edge","take any square"];
-  var RULE_TEXT={
-    "finish my line":"IF I have two in a line AND the third square is empty, THEN play it — I win.",
-    "block their line":"IF the opponent has two in a line AND the third square is empty, THEN play it — I block them.",
-    "take the center":"IF the center is empty, THEN play the center.",
-    "take the opposite corner":"IF the opponent owns one corner AND the opposite corner is empty, THEN play the opposite corner.",
-    "take a corner":"IF a corner is empty, THEN play it.",
-    "take an edge":"IF an edge is empty, THEN play it.",
-    "take any square":"IF a square is empty, THEN play it."
+  var CONDITIONS=["I have two in a line","opponent has two in a line","center is empty","a corner is empty","an edge is empty","opponent owns one corner","opposite corner is empty","a square is empty"];
+  var MOVES=["play the winning square","play the blocking square","play the center","play a corner","play an edge","play the opposite corner","play any empty square"];
+  var ACTION_DEFS={
+    "finish my line":{c1:"I have two in a line", m:"play the winning square"},
+    "block their line":{c1:"opponent has two in a line", m:"play the blocking square"},
+    "take the center":{c1:"center is empty", m:"play the center"},
+    "take the opposite corner":{c1:"opponent owns one corner", c2:"opposite corner is empty", m:"play the opposite corner"},
+    "take a corner":{c1:"a corner is empty", m:"play a corner"},
+    "take an edge":{c1:"an edge is empty", m:"play an edge"},
+    "take any square":{c1:"a square is empty", m:"play any empty square"}
   };
 
   function heuristicsEditor(cfg){
@@ -1177,19 +1221,33 @@
     var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
     help.innerHTML="The AI checks the rules from <b>top to bottom</b> and uses the <b>first</b> one that applies.";
     block.appendChild(help);
+    // the default brain uses short rule names — turn them into IF-THEN pieces
+    if(cfg.rules.length && typeof cfg.rules[0]==="string"){
+      cfg.rules=cfg.rules.map(normalizeRule);
+    }
     var list=document.createElement("div");
+    var COND2_OPTIONS=["(nothing)"].concat(CONDITIONS);
+
+    function mkSelect(options, cur, onCh){
+      var sel=document.createElement("select"); sel.className="cfg-select";
+      options.forEach(function(a){
+        var o=document.createElement("option"); o.value=a; o.textContent=a;
+        if(a===cur) o.selected=true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function(){ onCh(sel.value); });
+      return sel;
+    }
+    function word(txt){ var s=document.createElement("span"); s.className="rule-w"; s.textContent=txt; return s; }
+
     function rerender(){
       list.innerHTML="";
-      cfg.rules.forEach(function(action,i){
+      cfg.rules.forEach(function(r,i){
         var row=document.createElement("div"); row.className="cfg-rule";
         var num=document.createElement("span"); num.className="rule-order"; num.textContent=(i+1)+".";
-        var sel=document.createElement("select"); sel.className="cfg-select";
-        ACTIONS.forEach(function(a){
-          var o=document.createElement("option"); o.value=a; o.textContent=a;
-          if(a===action) o.selected=true;
-          sel.appendChild(o);
-        });
-        sel.addEventListener("change", function(){ cfg.rules[i]=sel.value; });
+        var sel1=mkSelect(CONDITIONS, r.c1, function(v){ r.c1=v; });
+        var sel2=mkSelect(COND2_OPTIONS, r.c2||"(nothing)", function(v){ r.c2 = (v==="(nothing)")?"":v; });
+        var sel3=mkSelect(MOVES, r.m, function(v){ r.m=v; });
         var up=document.createElement("button"); up.type="button"; up.className="mini-btn"; up.textContent="↑"; up.title="move rule up";
         up.disabled=(i===0);
         up.addEventListener("click", function(){
@@ -1202,16 +1260,18 @@
         });
         var del=document.createElement("button"); del.type="button"; del.className="mini-btn"; del.textContent="✕"; del.title="remove rule";
         del.addEventListener("click", function(){ cfg.rules.splice(i,1); rerender(); });
-        var ifn=document.createElement("div"); ifn.className="rule-if";
-        ifn.textContent=RULE_TEXT[action]||action;
-        row.appendChild(num); row.appendChild(sel); row.appendChild(up); row.appendChild(down); row.appendChild(del); row.appendChild(ifn);
+        row.appendChild(num);
+        row.appendChild(word("IF")); row.appendChild(sel1);
+        row.appendChild(word("AND")); row.appendChild(sel2);
+        row.appendChild(word("THEN")); row.appendChild(sel3);
+        row.appendChild(up); row.appendChild(down); row.appendChild(del);
         list.appendChild(row);
       });
     }
     rerender();
     block.appendChild(list);
     var add=document.createElement("button"); add.type="button"; add.className="mini-btn"; add.textContent="+ add a rule";
-    add.addEventListener("click", function(){ cfg.rules.push("take the center"); rerender(); });
+    add.addEventListener("click", function(){ cfg.rules.push({c1:"a corner is empty", c2:"", m:"play a corner"}); rerender(); });
     block.appendChild(add);
     wrap.appendChild(block);
     return wrap;
