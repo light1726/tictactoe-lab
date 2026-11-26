@@ -30,6 +30,8 @@ Ideas to try
   * Find the smallest depth where your brain still beats Greedy.
 """
 
+import random
+
 import board
 from board import X, O, EMPTY, legal_moves, play, winner, is_full, \
     opponent, self_test, export_brain
@@ -40,6 +42,11 @@ CONFIG = {
 
     # Skip parts of the tree that cannot change the answer?
     "alpha_beta": True,
+
+    # Caution (0-100): how carefully it plays. 100 = it never slips and can
+    # never lose. Lower = sometimes it plays a random square instead of its
+    # best move -- the AI becomes beatable (and more fun to play against).
+    "caution": 100,
 
     # The evaluation: how good an UNFINISHED position looks for me.
     #   open_lines:   each line I could still win  (+1 each)
@@ -122,6 +129,9 @@ def choose_move(b, p):
                          -10 ** 9, 10 ** 9)
         if best_value is None or value > best_value:
             best_move, best_value = move, value
+    # Caution: occasionally slip and play a random square instead.
+    if random.random() * 100 >= CONFIG["caution"]:
+        return random.choice(legal_moves(b))
     return best_move
 
 
@@ -137,6 +147,7 @@ if __name__ == "__main__":
         "config": {
             "depth": CONFIG["depth"],
             "alpha_beta": CONFIG["alpha_beta"],
+            "caution": CONFIG["caution"],
             "evaluation": CONFIG["evaluation"],
         },
         "scorecard": results,

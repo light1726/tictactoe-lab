@@ -1,6 +1,7 @@
 {
   "config": {
     "alpha_beta": true,
+    "caution": 100,
     "depth": 9,
     "evaluation": {
       "center": 2,
@@ -21,9 +22,9 @@
       "win": 0
     },
     "Randomo": {
-      "draw": 1,
+      "draw": 2,
       "loss": 0,
-      "win": 11
+      "win": 10
     }
   }
 }

@@ -742,8 +742,13 @@
       perMove.push(entry);
       if(best===null || v>best){ best=v; move=lm[i]; }
     }
-    return {move:move, view:{type:"search", perMove:perMove, chosen:move,
-                             nodes:searchNodes, ms:Math.round((performance.now()-t0)*10)/10, cfg:cfg}};
+    // Caution: occasionally slip and play a random square instead.
+    var caution = (cfg.caution===undefined) ? 100 : cfg.caution;
+    var slipped = (Math.random()*100) >= caution;
+    var actual = slipped ? randomMove(b) : move;
+    return {move:actual, view:{type:"search", perMove:perMove, chosen:actual, best:move,
+                             slipped:slipped, nodes:searchNodes,
+                             ms:Math.round((performance.now()-t0)*10)/10, cfg:cfg}};
   }
 
   function rlKey(b,p){
@@ -851,7 +856,12 @@
       html+='<div class="decision">Square <b>'+(view.chosen+1)+'</b> has the best expected score → <b>play square '+(view.chosen+1)+'</b></div>';
     }
     else if(view.type==="search"){
-      if(view.cfg.depth===9){
+      if(view.slipped){
+        html+=stepBox(2, "A slip",
+          '<div class="explain">Its caution is <b>'+view.cfg.caution+'%</b> — this time it slipped and played a <b>random square</b> instead of its best move.</div>');
+        html+='<div class="decision">Random square <b>'+(view.chosen+1)+'</b> — its best move would have been square <b>'+(view.best+1)+'</b>.</div>';
+      }
+      else if(view.cfg.depth===9){
         var foe=opp(p);
         function valWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "loss"); }
         function verbWord(v){ return v===1 ? "win" : (v===0 ? "draw" : "lose"); }
@@ -1308,12 +1318,19 @@
     var block=document.createElement("div"); block.className="cfg-block";
     var h=document.createElement("h3"); h.textContent="How far ahead does it look?";
     block.appendChild(h);
+    if(cfg.caution===undefined) cfg.caution=100;
     var help=document.createElement("p"); help.className="help"; help.style.margin="0 0 10px";
     help.innerHTML="How many moves ahead it considers. <b>9 = until the game ends</b> (then it can never lose). Fewer moves = weaker, but faster.";
     block.appendChild(help);
     var r1=cfgRow("Depth (moves ahead):");
     r1.appendChild(rangeInput(cfg.depth, 1, 9, 1, function(v){ cfg.depth=Math.round(v); }));
     block.appendChild(r1);
+    var r2=cfgRow("Caution:");
+    r2.appendChild(rangeInput(cfg.caution, 40, 100, 10, function(v){ cfg.caution=Math.round(v); }));
+    block.appendChild(r2);
+    var help2=document.createElement("p"); help2.className="help"; help2.style.margin="6px 0 0";
+    help2.innerHTML="How carefully it plays. <b>100% = it never slips and can never lose.</b> Lower = it sometimes plays a random square instead of its best move — try lowering it and beating it!";
+    block.appendChild(help2);
     wrap.appendChild(block);
     return wrap;
   }
