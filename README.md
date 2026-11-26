@@ -46,9 +46,8 @@ One game, four different sources of knowledge. The lab is built around the quest
   reasoned → the scores/values → the decision.
 - **Make** — keep it simple. Logic lets you edit the rule list (reorder, add /
   remove). Probability has one knob, the simulated games per move;
-  Search has the look-ahead depth and a **caution** slider (100% = never slips;
-  lower = it sometimes plays a random square and becomes beatable); RL has
-  training games, learning
+  Search has a **caution** slider (100% = never slips; lower = it sometimes
+  plays a random square and becomes beatable); RL has training games, learning
   rate and a **Train now!** button that trains it live in the browser and
   draws its learning curve. **Apply** makes the Play tab use your version
   (marked ✏️); **Reset to default** brings the original back.
