@@ -1152,15 +1152,25 @@
           return html+'</div>';
         }
         var ordered=[ch].concat(view.perMove.filter(function(s){ return s.m!==view.chosen; }));
-        var traceBlocks=ordered.map(function(mv){
+        var others=ordered.slice(1);
+        // show two moves only: the chosen one and one more — prefer one with
+        // a different outcome for contrast, otherwise the first of the rest
+        var second=others.filter(function(s){ return s.lowest!==ch.lowest; })[0] || others[0];
+        var shown=[ch];
+        if(second) shown.push(second);
+        var restCount=ordered.length-shown.length;
+        var traceBlocks=shown.map(function(mv){
           var tagCls=mv.lowest===1?"win":(mv.lowest===0?"draw":"loss");
           return '<div class="subhead">Possible move: square '+(mv.m+1)+
                  (mv.m===view.chosen?' <span class="step-tick">✓ chosen</span>':'')+
                  ' — the worst result is <span class="res-tag '+tagCls+'">'+valWord(mv.lowest)+'</span></div>'+
                  traceHtml(mv);
         }).join("");
-        html+=stepBox(2, "Imagination: every move, played to the very end",
-          '<div class="explain">For every possible move it follows the game to the end, always along the opponent\'s most hurtful reply (red border). The <b>⋮</b> marks the other replies it also checked. My moves are highlighted in gold.</div>'+
+        if(restCount>0){
+          traceBlocks+='<div class="more-moves">⋮ '+restCount+' other possible move'+(restCount===1?'':'s')+' — each is traced to the end the same way.</div>';
+        }
+        html+=stepBox(2, "Imagination: played to the very end",
+          '<div class="explain">For every possible move it plays the game to the end, always following the opponent\'s most hurtful reply (red border). Here are two of those traces — the chosen move and one more. The <b>⋮</b> marks the other replies it also checked, and the rest of the moves are below. My moves are highlighted in gold.</div>'+
           traceBlocks);
         var rows=view.perMove.map(function(s){
           var cls="cand";
