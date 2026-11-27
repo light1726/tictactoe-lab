@@ -404,8 +404,18 @@
   .stree .tnode-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px;}
   .stree .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.28);border-radius:5px;background:rgba(0,0,0,.16);padding:4px;}
   .t-root-lbl{
+    display:block;
     font-family:"Fredoka",sans-serif;font-weight:700;font-size:13px;color:var(--sun);
-    text-transform:uppercase;letter-spacing:.05em;
+    text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;
+  }
+  .stree .troot{position:relative;}
+  /* the elbow that connects the root row down to the trunk */
+  .stree .troot-row{position:relative;}
+  .stree .troot-row::after{
+    content:"";position:absolute;left:0;top:100%;height:8px;width:28px;
+    border-left:2px dashed rgba(255,255,255,.45);
+    border-bottom:2px dashed rgba(255,255,255,.45);
+    border-bottom-left-radius:7px;
   }
   .stree .tchild{position:relative;margin-left:28px;padding-left:16px;}
   .stree .tchild::before{
@@ -419,6 +429,7 @@
   .stree .tchild:last-child::before{bottom:auto;height:17px;}
   @media (max-width:520px){
     .stree .tchild{margin-left:16px;padding-left:10px;}
+    .stree .troot-row::after{width:16px;}
   }
 
   @media (max-width:520px){
@@ -1182,8 +1193,8 @@
           var endWord=endVal===1?"win":(endVal===0?"draw":"loss");
           var endCls=endVal===1?"win":(endVal===0?"draw":"loss");
           if(!mv.replies.length){
-            return '<div class="stree"><div class="tnode-row"><span class="t-root-lbl">my move</span>'+
-                   boardMini(afterMy, mv.m, "mine")+
+            return '<div class="stree"><div class="t-root-lbl">my move</div>'+
+                   '<div class="tnode-row">'+boardMini(afterMy, mv.m, "mine")+
                    '<span class="route-result '+endCls+'">the game ends here: '+endWord+'</span></div></div>';
           }
           var levels=[], cur=afterMy;
@@ -1203,9 +1214,10 @@
             if(L.alts>0) children+='<div class="tchild"><div class="tnode-row"><span class="alt-chip">⋮ '+L.alts+' '+L.altsWord+'</span></div></div>';
             return row+children;
           }
-          return '<div class="stree">'+
-                 '<div class="tnode-row"><span class="t-root-lbl">my move</span>'+boardMini(afterMy, mv.m, "mine")+'</div>'+
-                 '<div class="tchild">'+buildLevel(0)+'</div></div>';
+          return '<div class="stree"><div class="t-root-lbl">my move</div>'+
+                 '<div class="troot has-children">'+
+                 '<div class="tnode-row troot-row">'+boardMini(afterMy, mv.m, "mine")+'</div>'+
+                 '<div class="tchild">'+buildLevel(0)+'</div></div></div>';
         }
         var ordered=[ch].concat(view.perMove.filter(function(s){ return s.m!==view.chosen; }));
         var others=ordered.slice(1);
