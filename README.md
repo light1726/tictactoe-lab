@@ -56,12 +56,21 @@ One game, four different sources of knowledge. The lab is built around the quest
 
 ### Logic (`heuristics.py`)
 
-- **PLAY** a game or two against it. It never loses — annoying, right?
+- **PLAY** a game or two against it. It's tidy… but it **can't block**!
+  Get two in a row and it does nothing about it — a careful player wins
+  every time. (That's on purpose: the default brain is missing one rule.)
 - **THINK** the purple panel shows the rules being checked in order, with a ✓
   on the first rule that applies. All of its smarts are *your* rules, nothing more.
-- **MAKE** edit the `rules` list inside `CONFIG` at the top of the file — the
-  rules are checked top to bottom and the first one that applies decides:
-  * Delete the `"block their line"` rule → rerun → check the scorecard. It's broken!
+- **MAKE** — the classroom moment. In the **Make tab**, add the missing rule:
+  *"IF the opponent has two in a line THEN play the blocking square"* — press
+  **+ add a rule**, choose the condition and the move, and move the rule up to
+  position 2 (right after "finish my line"). Press **Apply** and play again:
+  now it blocks everything. One rule, and the AI goes from losing to
+  Greedy/Minimax to drawing them.
+  For the Python route, edit the `rules` list inside `CONFIG` at the top of
+  the file — the rules are checked top to bottom and the first one that
+  applies decides:
+  * Add `"block their line"` back → rerun → check the scorecard. Fixed!
   * Move `"take the center"` ABOVE `"block their line"` → it forgets to defend.
   * Add `"take the opposite corner"` somewhere in the list → does it help vs Minimax?
 - **REFLECT** where did this AI's knowledge come from? What happens in a

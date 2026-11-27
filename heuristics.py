@@ -17,7 +17,9 @@ index.html. Open index.html to play against it.
 
 Ideas to try
 ------------
-  * Remove the "block their line" rule. What happens to the scorecard?
+  * The default is missing the "block their line" rule -- on purpose, for
+    the classroom demo: add it back (in the Make tab or here) and watch the
+    scorecard recover.
   * Move "take the center" ABOVE "block their line" and watch the
     brain forget how to defend.
   * Add "take the opposite corner" somewhere in the list. Does it help
@@ -34,7 +36,9 @@ CONFIG = {
     #          "take any square"
     "rules": [
         "finish my line",
-        "block their line",
+        # "block their line",   # <- removed! add it back during class to
+        #                        show what one rule can do: IF the opponent
+        #                        has two in a line THEN play the blocking square
         "take the center",
         "take a corner",
         "take an edge",
