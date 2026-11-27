@@ -399,6 +399,28 @@
   }
   .mini-cell.win{background:var(--teal);color:#fff;border-color:var(--teal-deep);}
 
+  /* the search tree: one expanded line per branch, ⋮ nodes for the rest */
+  .stree{margin:9px 0 3px 2px;}
+  .stree .tnode-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:36px;}
+  .stree .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.28);border-radius:5px;background:rgba(0,0,0,.16);padding:4px;}
+  .t-root-lbl{
+    font-family:"Fredoka",sans-serif;font-weight:700;font-size:13px;color:var(--sun);
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .stree .tchild{position:relative;margin-left:28px;padding-left:16px;}
+  .stree .tchild::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;
+    border-left:2px dashed rgba(255,255,255,.45);
+  }
+  .stree .tchild::after{
+    content:"";position:absolute;left:0;top:17px;width:14px;
+    border-top:2px dashed rgba(255,255,255,.45);
+  }
+  .stree .tchild:last-child::before{bottom:auto;height:17px;}
+  @media (max-width:520px){
+    .stree .tchild{margin-left:16px;padding-left:10px;}
+  }
+
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
     .stage{padding:20px 15px;}
@@ -1151,6 +1173,40 @@
           html+='<span class="trace-arrow">→</span><span class="route-result '+endCls+'">the game ends here: '+(endVal===1?"win":(endVal===0?"draw":"loss"))+'</span>';
           return html+'</div>';
         }
+        function treeHtml(mv){
+          // the chosen move drawn as a real tree: the worst-case line is
+          // expanded level by level, and every branch it didn't follow is
+          // a "⋮" sibling node
+          var afterMy=play(b, mv.m, p);
+          var endVal=mv.lowest;
+          var endWord=endVal===1?"win":(endVal===0?"draw":"loss");
+          var endCls=endVal===1?"win":(endVal===0?"draw":"loss");
+          if(!mv.replies.length){
+            return '<div class="stree"><div class="tnode-row"><span class="t-root-lbl">my move</span>'+
+                   boardMini(afterMy, mv.m, "mine")+
+                   '<span class="route-result '+endCls+'">the game ends here: '+endWord+'</span></div></div>';
+          }
+          var levels=[], cur=afterMy;
+          mv.trace.forEach(function(st){
+            cur=play(cur, st.move, st.player);
+            levels.push({board:cur, newest:st.move, kind: st.player===foe?"reply":"mine",
+                         alts:st.alts, altsWord: st.player===foe?"other replies":"other moves"});
+          });
+          function buildLevel(i){
+            var L=levels[i];
+            var row='<div class="tnode-row">'+boardMini(L.board, L.newest, L.kind)+
+                    (i===levels.length-1
+                      ? '<span class="route-result '+endCls+'">the game ends here: '+endWord+'</span>'
+                      : '')+'</div>';
+            var children='';
+            if(i+1<levels.length) children+='<div class="tchild">'+buildLevel(i+1)+'</div>';
+            if(L.alts>0) children+='<div class="tchild"><div class="tnode-row"><span class="alt-chip">⋮ '+L.alts+' '+L.altsWord+'</span></div></div>';
+            return row+children;
+          }
+          return '<div class="stree">'+
+                 '<div class="tnode-row"><span class="t-root-lbl">my move</span>'+boardMini(afterMy, mv.m, "mine")+'</div>'+
+                 '<div class="tchild">'+buildLevel(0)+'</div></div>';
+        }
         var ordered=[ch].concat(view.perMove.filter(function(s){ return s.m!==view.chosen; }));
         var others=ordered.slice(1);
         // show two moves only: the chosen one and one more — prefer one with
@@ -1164,13 +1220,13 @@
           return '<div class="subhead">Possible move: square '+(mv.m+1)+
                  (mv.m===view.chosen?' <span class="step-tick">✓ chosen</span>':'')+
                  ' — the worst result is <span class="res-tag '+tagCls+'">'+valWord(mv.lowest)+'</span></div>'+
-                 traceHtml(mv);
+                 (mv.m===view.chosen?treeHtml(mv):traceHtml(mv));
         }).join("");
         if(restCount>0){
           traceBlocks+='<div class="more-moves">⋮ '+restCount+' other possible move'+(restCount===1?'':'s')+' — each is traced to the end the same way.</div>';
         }
         html+=stepBox(2, "Imagination: played to the very end",
-          '<div class="explain">For every possible move it plays the game to the end, always following the opponent\'s most hurtful reply (red border). Here are two of those traces — the chosen move and one more. The <b>⋮</b> marks the other replies it also checked, and the rest of the moves are below. My moves are highlighted in gold.</div>'+
+          '<div class="explain">For every possible move it plays the game to the end, always following the opponent\'s most hurtful reply (red border). The chosen move is drawn as a <b>tree</b> — the worst-case line, with each <b>⋮</b> marking the other replies it also checked — plus one more move for comparison. My moves are highlighted in gold.</div>'+
           traceBlocks);
         var rows=view.perMove.map(function(s){
           var cls="cand";
