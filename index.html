@@ -388,6 +388,17 @@
   .route-result.loss{color:#F4C4C4;}
   .reply-label{font-size:13.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}
 
+  /* search traces: one board after another, played to the very end */
+  .trace-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:7px 0 4px;}
+  .trace-row .mini-board{box-shadow:0 0 0 2px rgba(255,255,255,.28);border-radius:5px;background:rgba(0,0,0,.16);padding:4px;}
+  .trace-arrow{color:rgba(255,255,255,.75);font-weight:800;font-size:16px;line-height:1;}
+  .alt-chip{
+    background:rgba(255,255,255,.13);border:2px dashed rgba(255,255,255,.5);
+    border-radius:999px;padding:2px 9px;font-size:12.5px;font-weight:800;
+    color:rgba(255,255,255,.9);white-space:nowrap;
+  }
+  .mini-cell.win{background:var(--teal);color:#fff;border-color:var(--teal-deep);}
+
   @media (max-width:520px){
     body{padding:18px 10px 54px;}
     .stage{padding:20px 15px;}
@@ -833,6 +844,21 @@
           entry.replies=replies;
           entry.poss=Object.keys(poss).map(Number).sort(function(a,b){ return b-a; });   // win, draw, loss
           entry.lowest=lowest;
+          // the worst-case line: the opponent always picks the reply that
+          // hurts me most, and I answer with my best continuation — to the end
+          var trace=[], cur=child, pl=opp(p), guard=0;
+          while(!winner(cur) && !isFull(cur) && guard++<9){
+            var opts=legalMoves(cur), bestOpt=null, bestVal=null, kk;
+            for(kk=0;kk<opts.length;kk++){
+              var vv = (pl===p) ? -perfectValue(play(cur,opts[kk],pl), opp(p))
+                                : perfectValue(play(cur,opts[kk],pl), p);
+              if(bestOpt===null || (pl===p ? vv>bestVal : vv<bestVal)){ bestVal=vv; bestOpt=opts[kk]; }
+            }
+            trace.push({move:bestOpt, player:pl, alts:opts.length-1});
+            cur=play(cur,bestOpt,pl);
+            pl=opp(pl);
+          }
+          entry.trace=trace;
         }
       }
       perMove.push(entry);
@@ -1090,52 +1116,52 @@
           return '<span class="out '+cls+'">'+txt+'</span>';
         }
         var ch=view.perMove.filter(function(s){ return s.m===view.chosen; })[0];
-        var rival = view.perMove.filter(function(s){ return s.m!==view.chosen && s.lowest>ch.lowest; })[0]
-                 || view.perMove.filter(function(s){ return s.m!==view.chosen; })[0];
-        function boardsHtml(mv){
+        function boardMini(board, newest, kind){
+          var wl=winLine(board);
+          var cells="";
+          for(var ci=0;ci<9;ci++){
+            var c=board[ci];
+            var cls="mini-cell";
+            if(c===X) cls+=" x";
+            if(c===O) cls+=" o";
+            if(ci===newest) cls+=(kind==="reply"?" reply":" mine");
+            if(wl && wl.indexOf(ci)!==-1) cls+=" win";
+            cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+          }
+          return '<div class="mini-board">'+cells+'</div>';
+        }
+        function traceHtml(mv){
           var afterMy=play(b, mv.m, p);
           if(!mv.replies.length){
             var endWord = winner(afterMy)===p ? "win" : "draw";
-            var cellsE="";
-            for(var ce=0;ce<9;ce++){
-              var cev=afterMy[ce];
-              var clsE="mini-cell";
-              if(cev===X) clsE+=" x";
-              if(cev===O) clsE+=" o";
-              if(ce===mv.m) clsE+=" mine";
-              cellsE+='<span class="'+clsE+'">'+(cev===EMPTY?"":cev)+'</span>';
-            }
-            return '<div class="reply-grid"><div class="reply-card worst">'+
-                   '<div class="mini-board">'+cellsE+'</div>'+
-                   '<div class="route-result '+endWord+'">the game ends here: '+endWord+'</div>'+
-                   '</div></div>';
+            return '<div class="trace-row">'+boardMini(afterMy, mv.m, "mine")+
+                   '<span class="route-result '+endWord+'">the game ends here: '+endWord+'</span></div>';
           }
-          return '<div class="reply-grid">'+mv.replies.map(function(rp){
-            var worst = rp.v===mv.lowest;
-            var board=play(afterMy, rp.r, foe);
-            var cells="";
-            for(var ci=0;ci<9;ci++){
-              var c=board[ci];
-              var cls="mini-cell";
-              if(c===X) cls+=" x";
-              if(c===O) cls+=" o";
-              if(ci===mv.m) cls+=" mine";
-              if(ci===rp.r) cls+=" reply";
-              cells+='<span class="'+cls+'">'+(c===EMPTY?"":c)+'</span>';
+          var html='<div class="trace-row">'+boardMini(afterMy, mv.m, "mine");
+          var cur=afterMy;
+          mv.trace.forEach(function(st){
+            cur=play(cur, st.move, st.player);
+            html+='<span class="trace-arrow">→</span>'+boardMini(cur, st.move, st.player===foe?"reply":"mine");
+            if(st.player===foe && st.alts>0){
+              html+='<span class="alt-chip">⋮ '+st.alts+' other '+(st.alts===1?'reply':'replies')+'</span>';
             }
-            var vcls = rp.v===1 ? "win" : (rp.v===0 ? "draw" : "loss");
-            return '<div class="reply-card'+(worst?" worst":"")+'">'+
-                   '<div class="mini-board">'+cells+'</div>'+
-                   '<div class="route-dots">⋮</div>'+
-                   '<div class="route-result '+vcls+'">worst along this route: '+vcls+'</div>'+
-                   '</div>';
-          }).join("")+'</div>';
+          });
+          var endVal=mv.lowest;
+          var endCls=endVal===1?"win":(endVal===0?"draw":"loss");
+          html+='<span class="trace-arrow">→</span><span class="route-result '+endCls+'">the game ends here: '+(endVal===1?"win":(endVal===0?"draw":"loss"))+'</span>';
+          return html+'</div>';
         }
-        html+=stepBox(2, "Imagination: my move and the opponent's replies",
-          '<div class="explain">My move is highlighted · the opponent\'s reply has a red border · every route is searched to the very end of the game.</div>'+
-          '<div class="subhead">Possible move: square '+(view.chosen+1)+' — the worst result is <span class="res-tag '+(ch.lowest===1?"win":(ch.lowest===0?"draw":"loss"))+'">'+valWord(ch.lowest)+'</span></div>'+boardsHtml(ch)+
-          '<div class="subhead">Possible move: square '+(rival.m+1)+' — the worst result is <span class="res-tag '+(rival.lowest===1?"win":(rival.lowest===0?"draw":"loss"))+'">'+valWord(rival.lowest)+'</span></div>'+boardsHtml(rival)+
-          '<div class="more-moves">Other possible moves … and so on, for every empty square.</div>');
+        var ordered=[ch].concat(view.perMove.filter(function(s){ return s.m!==view.chosen; }));
+        var traceBlocks=ordered.map(function(mv){
+          var tagCls=mv.lowest===1?"win":(mv.lowest===0?"draw":"loss");
+          return '<div class="subhead">Possible move: square '+(mv.m+1)+
+                 (mv.m===view.chosen?' <span class="step-tick">✓ chosen</span>':'')+
+                 ' — the worst result is <span class="res-tag '+tagCls+'">'+valWord(mv.lowest)+'</span></div>'+
+                 traceHtml(mv);
+        }).join("");
+        html+=stepBox(2, "Imagination: every move, played to the very end",
+          '<div class="explain">For every possible move it follows the game to the end, always along the opponent\'s most hurtful reply (red border). The <b>⋮</b> marks the other replies it also checked. My moves are highlighted in gold.</div>'+
+          traceBlocks);
         var rows=view.perMove.map(function(s){
           var cls="cand";
           if(s.m===view.chosen) cls+=" picked";
