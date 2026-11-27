@@ -1583,7 +1583,7 @@
     help.innerHTML="It learns by playing games. <b>More games = more experience</b>; a higher learning rate means each game changes its opinions more.";
     block.appendChild(help);
     var r2=cfgRow("Training games:");
-    r2.appendChild(numInput(cfg.episodes, 1000, 1000, 100000, function(v){ cfg.episodes=Math.max(1000,Math.round(v)); markDirty(); }));
+    r2.appendChild(numInput(cfg.episodes, 10, 10, 100000, function(v){ cfg.episodes=Math.max(10,Math.round(v)); markDirty(); }));
     block.appendChild(r2);
     var r3=cfgRow("Learning rate α:");
     r3.appendChild(rangeInput(cfg.learning_rate, 0.05, 1, 0.05, function(v){ cfg.learning_rate=v; markDirty(); }));
@@ -1656,7 +1656,7 @@
 
   function rlTrain(cfg, progressCb, doneCb){
     var Q={}, ep=0;
-    var logEvery=Math.max(500, Math.round(cfg.episodes/10));
+    var logEvery=Math.max(1, Math.round(cfg.episodes/10));
     var curve=[];
 
     function bestKnownQ(b,p){
