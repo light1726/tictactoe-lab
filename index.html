@@ -394,8 +394,38 @@
     .btn{font-size:15px;padding:8px 14px;}
     .board{gap:8px;}
   }
+
+  /* ---------- Floating quick-jump buttons ---------- */
+  .float-nav{
+    position:fixed;right:14px;top:50%;transform:translateY(-50%);
+    display:flex;flex-direction:column;gap:10px;z-index:60;
+  }
+  .fbtn{
+    font-family:"Fredoka",sans-serif;font-weight:600;font-size:13px;cursor:pointer;
+    color:#fff;background:var(--grape);border:3px solid var(--ink);
+    border-radius:14px;padding:8px 7px;width:74px;
+    display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.05;
+    box-shadow:0 4px 0 var(--shadow);transition:transform .06s,box-shadow .06s;
+  }
+  .fbtn .ficon{font-size:19px;line-height:1;}
+  .fbtn:hover{filter:brightness(1.05);}
+  .fbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);}
+  .fbtn:focus-visible{outline:3px solid var(--sun);outline-offset:2px;}
+  .fbtn.fbtn-sun{background:var(--sun);color:var(--ink);}
+  .fbtn.fbtn-teal{background:var(--teal);color:#fff;}
+  @keyframes jumpFlash{0%,100%{outline:4px solid transparent;} 25%{outline:4px solid var(--sun);}}
+  .jump-flash{animation:jumpFlash .9s ease-out 2;border-radius:22px;}
+  @media (max-width:900px){
+    .float-nav{right:8px;}
+    .fbtn{width:64px;font-size:12px;padding:7px 4px;}
+  }
+  @media (max-width:520px){
+    .float-nav{right:6px;gap:8px;}
+    .fbtn{width:56px;font-size:11px;padding:6px 3px;border-width:2.5px;border-radius:12px;}
+  }
   @media (prefers-reduced-motion:reduce){
-    .btn,.tab,.cell{transition:none;}
+    .btn,.tab,.cell,.fbtn{transition:none;}
+    .jump-flash{animation:none;}
   }
 </style>
 </head>
@@ -460,6 +490,12 @@
       <button class="btn btn--ghost" id="resetMakeBtn">Reset to default</button>
     </div>
   </section>
+
+  <nav class="float-nav hidden" id="floatNav" aria-label="jump to">
+    <button class="fbtn fbtn-sun" id="jumpBoard" type="button"><span class="ficon">🎮</span>Board</button>
+    <button class="fbtn hidden" id="jumpBrain" type="button"><span class="ficon">🧠</span>The move</button>
+    <button class="fbtn fbtn-teal hidden" id="jumpTrain" type="button"><span class="ficon">📈</span>Training</button>
+  </nav>
 
 </div>
 
@@ -1222,6 +1258,7 @@
     };
     brainVisible=false;
     brainPanel.classList.add("hidden");
+    syncFloatNav();
     if(!BRAINS[brainKey]){
       game.over=true;
       statusEl.textContent="This AI isn't available yet.";
@@ -1248,6 +1285,7 @@
     var show = selectedBrain==="rl" && document.querySelector(".tab.active") && document.querySelector(".tab.active").dataset.sec==="play";
     trainPanel.classList.toggle("hidden", !show);
     if(show) renderTrainPanel();
+    syncFloatNav();
   }
 
   function activeBrain(){
@@ -1342,7 +1380,25 @@
     brainPanel.classList.remove("hidden");
     brainHowBody.textContent=HOW[key];
     brainPanel.scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"nearest"});
+    syncFloatNav();
   }
+
+  /* ---------- floating quick-jump buttons ---------- */
+  function syncFloatNav(){
+    var onPlay = document.querySelector(".tab.active") && document.querySelector(".tab.active").dataset.sec==="play";
+    $("floatNav").classList.toggle("hidden", !onPlay);
+    $("jumpBrain").classList.toggle("hidden", !onPlay || !brainVisible);
+    $("jumpTrain").classList.toggle("hidden", !onPlay || selectedBrain!=="rl");
+  }
+  function jumpTo(el){
+    el.scrollIntoView({behavior:"auto", block:"start"});
+    el.classList.remove("jump-flash");
+    void el.offsetWidth;              // restart the highlight animation
+    el.classList.add("jump-flash");
+  }
+  $("jumpBoard").addEventListener("click", function(){ jumpTo($("board")); });
+  $("jumpBrain").addEventListener("click", function(){ jumpTo(brainPanel); });
+  $("jumpTrain").addEventListener("click", function(){ jumpTo(trainPanel); });
 
   $("newGameBtn").addEventListener("click", function(){ newGame(game?game.human:X); });
   $("sideX").addEventListener("click", function(){ setSide(X); });
@@ -1765,6 +1821,7 @@
     // the brain panel only belongs on the Play tab (and only when fresh)
     brainPanel.classList.toggle("hidden", el.dataset.sec!=="play" || !brainVisible);
     trainPanel.classList.toggle("hidden", el.dataset.sec!=="play" || selectedBrain!=="rl");
+    syncFloatNav();
   });
 
   // the exported rl.json uses longer names; give the arena short ones
