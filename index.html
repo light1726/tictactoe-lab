@@ -428,7 +428,6 @@
       <button class="pick side" data-side="O" id="sideO">O</button>
       <span style="width:12px;"></span>
       <button class="btn btn--ghost" id="newGameBtn">New game</button>
-      <button class="btn btn--ghost" id="undoBtn">Undo</button>
     </div>
 
     <div class="board" id="board"></div>
@@ -1345,25 +1344,7 @@
     brainPanel.scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"nearest"});
   }
 
-  function undo(){
-    if(!game || game.history.length<=1){ if(game) newGame(game.human); return; }
-    clearTimeout(aiTimer);
-    brainVisible=false;
-    brainPanel.classList.add("hidden");
-    game.history.pop();
-    if(game.history.length && game.history[game.history.length-1].player===game.brain){
-      game.history.pop();
-    }
-    game.board=new Array(9).fill(EMPTY);
-    game.lastAi=null;
-    game.history.forEach(function(h){ game.board[h.move]=h.player; if(h.player===game.brain) game.lastAi=h.move; });
-    game.over=false;
-    game.player=game.human;
-    renderBoard();
-  }
-
   $("newGameBtn").addEventListener("click", function(){ newGame(game?game.human:X); });
-  $("undoBtn").addEventListener("click", undo);
   $("sideX").addEventListener("click", function(){ setSide(X); });
   $("sideO").addEventListener("click", function(){ setSide(O); });
   brainPicker.addEventListener("click", function(ev){
